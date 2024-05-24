@@ -1,2 +1,25 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Auto-detect text files and perform LF normalization
+* ^(?i)(?!(\.|/)(bin|obj|out|exe|class|lib|ilk|pdb|exp|libx|gdb|idb|aps|sbr|ipdb|lo\
+g|tlb|ncb|suo|res|objd|pch))(?i).*\.(as?m?x?|bat|cmd|c|cc|cxx|cpp|c++|h|hh|hxx|hpp|
+h++|cs|d|di|dxl|rc|bas|txt|def|dat|db|description|diz|embed|ini|inf|url|htm|html|log|
+properties|resources|settings|sitemap|sln|suo|tlh|tmp|xml)$
+:LF_normalization
+  @ECHO ON
+  FOR %%A IN ("%_FILE%") DO (
+    CHCP 65001 > NUL
+    MOVE "%%~A" "%%~nA.tmp" > NUL
+    FINDSTR /R /N "^" "%%~nA.tmp" > "%%~nA.txt"
+    FOR /F "tokens=1* delims=:" %%A IN ('FINDSTR /R /N "^" "%%~nA.txt"') DO (
+      SET "line=%%B"
+      IF NOT "!line!"=="" (
+        SET "line=!line:^M=!"
+        IF "!line!" NEQ "%%B" (
+          ECHO(!line!>>"%%~nA.tmp"
+        )
+      )
+    )
+    DEL "%%~nA.txt" > NUL
+    MOVE "%%~nA.tmp" "%%~A" > NUL
+    CHCP 437 > NUL
+  )
+  @ECHO OFF
