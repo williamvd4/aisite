@@ -3,12 +3,13 @@
 import os
 import sys
 from typing import List, Tuple
+from django.core.management import execute_from_command_line
 
-def main() -> None:
+def main(argv: Tuple[str]) -> None:
     """Run administrative tasks."""
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
     try:
-        from django.core.management import execute_from_command_line
+        execute_from_command_line(argv)
     except ImportError as exc:
         error_msg = (
             "Couldn't import Django. Make sure it's installed and available "
@@ -16,9 +17,4 @@ def main() -> None:
             "virtual environment, did you remember to activate it?"
         )
         raise ImportError(error_msg) from exc
-    execute_from_command_line(sys.argv)
-
-
-if __name__ == "__main__":
-    main()
 
