@@ -2,7 +2,7 @@ from django.urls import path
 
 from . import views
 
-app_name = 'your_app_name'  # replace with your app name
+app_name = 'your_app'  # replace with your app name
 
 urlpatterns = [
     path('', views.IndexView.as_view(), name='index'),
@@ -12,20 +12,21 @@ urlpatterns = [
     path('logout/', views.LogoutView.as_view(), name='logout'),
 ]
 
-# in views.py
+
+from django.shortcuts import render
 from django.views.generic import TemplateView
 
-class IndexView(TemplateView):
-    template_name = 'index.html'
+def IndexView(request):
+    return render(request, 'index.html')
 
-class AboutView(TemplateView):
-    template_name = 'about.html'
+def AboutView(request):
+    return render(request, 'about.html')
 
-class ContactView(TemplateView):
-    template_name = 'contact.html'
+def ContactView(request):
+    return render(request, 'contact.html')
 
-class LoginView(TemplateView):
-    template_name = 'login.html'
+def LoginView(request):
+    return render(request, 'login.html')
 
-class LogoutView(TemplateView):
-    template_name = 'logout.html'
+def LogoutView(request):
+    return render(request, 'logout.html')
