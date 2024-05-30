@@ -1,4 +1,5 @@
-version: '3.8'
+version: '1.2.4'
+
 services:
   appseed-app:
     container_name: appseed_app
@@ -7,6 +8,15 @@ services:
     networks:
       - db_network
       - web_network
+    environment:
+      - NODE_ENV=production
+      - WATCH=false
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   nginx:
     container_name: nginx
     restart: always
@@ -15,13 +25,20 @@ services:
       - "5085:5085"
     volumes:
       - ./nginx:/etc/nginx/conf.d
+      - ./nginx/conf.d:/etc/nginx/conf.d
     networks:
       - web_network
-    depends_on: 
+    depends_on:
       - appseed-app
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
 networks:
   db_network:
     driver: bridge
   web_network:
     driver: bridge
- 
+
