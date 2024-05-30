@@ -1,25 +1,60 @@
-# Auto-detect text files and perform LF normalization
-* ^(?i)(?!(\.|/)(bin|obj|out|exe|class|lib|ilk|pdb|exp|libx|gdb|idb|aps|sbr|ipdb|lo\
-g|tlb|ncb|suo|res|objd|pch))(?i).*\.(as?m?x?|bat|cmd|c|cc|cxx|cpp|c++|h|hh|hxx|hpp|
-h++|cs|d|di|dxl|rc|bas|txt|def|dat|db|description|diz|embed|ini|inf|url|htm|html|log|
-properties|resources|settings|sitemap|sln|suo|tlh|tmp|xml)$
-:LF_normalization
-  @ECHO ON
-  FOR %%A IN ("%_FILE%") DO (
-    CHCP 65001 > NUL
-    MOVE "%%~A" "%%~nA.tmp" > NUL
-    FINDSTR /R /N "^" "%%~nA.tmp" > "%%~nA.txt"
-    FOR /F "tokens=1* delims=:" %%A IN ('FINDSTR /R /N "^" "%%~nA.txt"') DO (
-      SET "line=%%B"
-      IF NOT "!line!"=="" (
-        SET "line=!line:^M=!"
-        IF "!line!" NEQ "%%B" (
-          ECHO(!line!>>"%%~nA.tmp"
+@echo off
+setlocal enabledelayedexpansion
+
+:: Auto-detect text files and perform LF normalization
+findstr /R /N "^" "%_FILE%" > "%~n1.txt"
+for /F "tokens=1* delims=:" %%A IN ('findstr /R /N "^" "%~n1.txt"') do (
+    set "line=%%B"
+    if not "!line!"=="" (
+        set "line=!line:^M=!"
+        if "!line!" neq "%%B" (
+            echo(!line!>>"%~n1.tmp"
+        ) else (
+            echo(!line!>>"%~n1.txt"
         )
-      )
     )
-    DEL "%%~nA.txt" > NUL
-    MOVE "%%~nA.tmp" "%%~A" > NUL
-    CHCP 437 > NUL
-  )
-  @ECHO OFF
+)
+del "%~n1.txt" > nul
+move /Y "%~n1.tmp" "%~n1.txt" > nul
+
+:: List of file extensions to include in LF normalization
+set "exts=asm ax bat cmd c cpp h idl log properties resources settings site
+map sln suo tlh tmp txt url htm html inf inf res xml def dat db description
+diz embed ini""
+
+:: Check if the file has any of the included extensions
+for %%x in (!exts!) do (
+    if /I "!file_ext!"=="%%x" (
+        call :LF_normalization
+        goto :end
+    )
+)
+
+:end
+endlocal
+goto :eof
+
+:LF_normalization
+:: Set CHCP to UTF-8 to support UTF-8 characters
+chcp 65001 > nul
+
+:: Perform LF normalization on the file
+for %%A in ("%_FILE%") do (
+    move "%%~A" "%%~nA.tmp" > nul
+    findstr /R /N "^" "%%~nA.tmp" > "%%~nA.txt"
+    for /F "tokens=1* delims=:" %%A in ('findstr /R /N "^" "%%~nA.txt"') do (
+        set "line=%%B"
+        if not "!line!"=="" (
+            set "line=!line:^M=!"
+            if "!line!" neq "%%B" (
+                echo(!line!>>"%%~nA.tmp"
+            )
+        )
+    )
+    del "%%~nA.txt" > nul
+    move "%%~nA.tmp" "%%~A" > nul
+)
+
+:: Reset CHCP to the previous code page
+chcp %1 > nul
+goto :eof
