@@ -10,34 +10,49 @@ set -o pipefail
 # print commands before executing them
 set -o xtrace
 
-# install dependencies
-if [[ ! -x "$(command -v curl)" ]]; then
-  echo 'Error: curl is not installed.' >&2
-  exit 1
+# check if curl is installed
+if ! command -v curl &> /dev/null
+then
+    echo "Error: curl is not installed."
+    exit 1
 fi
 
-if ! curl -fsS https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -; then
-  echo 'Error: Failed to add Docker GPG key.' >&2
-  exit 1
+# add Docker GPG key
+if ! curl -fsS https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+then
+    echo "Error: Failed to add Docker GPG key."
+    exit 1
 fi
 
+# add Docker repository
 sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+
+# update package list
 sudo apt-get update
+
+# install Docker
 sudo apt-get install -y docker-ce
 
-# run as non-root user
-if ! id -u django >/dev/null 2>&1; then
-  sudo useradd -m -s /bin/bash django
+# check if user 'django' exists
+if ! id -u django &> /dev/null
+then
+    # create user 'django'
+    sudo useradd -m -s /bin/bash django
 fi
 
-if ! groups django | grep -qw docker; then
-  sudo usermod -aG docker django
+# add user 'django' to the 'docker' group
+if ! groups django | grep -qw docker
+then
+    sudo usermod -aG docker django
 fi
 
+# give 'django' user ownership of the Docker socket
 sudo chown django:django /var/run/docker.sock
 
-su -c "pip install --upgrade pip" django
-su -c "pip install -r requirements.txt" django
+# upgrade pip and install requirements
+sudo -u django -H pip install --upgrade pip
+sudo -u django -H pip install -r requirements.txt
 
-su -c "python manage.py collectstatic --no-input" django
-su -c "python manage.py migrate" django
+# collect static files and apply migrations
+sudo -u django -H python manage.py collectstatic --no-input
+sudo -u django -H python manage.py migrate
