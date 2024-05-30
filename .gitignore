@@ -1,17 +1,36 @@
+from typing import List, Union
+
 # Global pattern to ignore VCS directories
-gitignore_global_patterns = ["*.pyc", "*.DS_Store", "*.egg*", "thumbs.db", "picasa.ini", ".Spotlight-V100", "._*", "node_modules", ".npm", "pip-log.txt", "pip-delete-this-directory.txt", "**/__pycache__"]
+gitignore_global_patterns: Union[str, List[str]] = [
+    "*.pyc",
+    "*.DS_Store",
+    "*.egg*",
+    "thumbs.db",
+    "picasa.ini",
+    ".Spotlight-V100",
+    "._*",
+    "node_modules",
+    ".npm",
+    "pip-log.txt",
+    "pip-delete-this-directory.txt",
+    "**/__pycache__",
+]
 
 # Patterns to ignore in the project root directory
-gitignore_project_patterns = ["*.sqlite*", ".env", "env", ".venv"]
+gitignore_project_patterns: Union[str, List[str]] = [
+    "*.sqlite*",
+    ".env",
+    "env",
+    ".venv",
+]
 
 # Patterns to ignore in the 'src' directory
-gitignore_src_patterns = []
+gitignore_src_patterns: Union[str, List[str]] = []
 
 # Combine all ignore patterns
-gitignore_patterns = gitignore_global_patterns + gitignore_project_patterns + gitignore_src_patterns
-
-# Format ignore patterns as a .gitignore file
-gitignore_file = "\n".join(gitignore_patterns)
+gitignore_patterns: List[str] = (
+    gitignore_global_patterns + gitignore_project_patterns + gitignore_src_patterns
+)
 
 # Print the .gitignore file
-print(gitignore_file)
+print(f"{'.gitignore'}\n{"\n".join(gitignore_patterns)}")
