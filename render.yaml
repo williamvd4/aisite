@@ -5,35 +5,4 @@ services:
     instances: 1
     health_checks:
       enabled: true
-      type: process
-      interval: 10s
-      timeout: 2s
-      retries: 3
-    env:
-      DJANGO_SETTINGS_MODULE: django_mkit.settings
-      DATABASE_URL: <database_url>
-      SECRET_KEY: <secret_key>
-    formation:
-      override:
-        cpu: 256
-        memory_mb: 512
-        disk_mb: 1024
-    labels:
-      version: v1
-      track: stable
-    upgrade_strategy:
-      type: bluegreen
-      blue_pre_launch: true
-      health_check_type: http
-      health_check_http_endpoint: /health
-      health_check_interval: 5s
-      health_check_timeout: 3s
-      min_healthy_time: 30s
-      max_unhealthy_time: 60s
-      auto_promotion_enabled: true
-      auto_promotion_min_size: 2
-      drain_strategy:
-        termination_timeout: 60s
-        keep_proxies: true
-        keep_consul_catalog_service: true
 
