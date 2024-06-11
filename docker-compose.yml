@@ -6,11 +6,10 @@ services:
     restart: always
     build: .
     networks:
-      - db_network
-      - web_network
+      - app-network
     environment:
-      - NODE_ENV=production
-      - WATCH=false
+      NODE_ENV: production
+      WATCH: false
     logging:
       driver: "json-file"
       options:
@@ -24,10 +23,9 @@ services:
     ports:
       - "5085:5085"
     volumes:
-      - ./nginx:/etc/nginx/conf.d
-      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx:/etc/nginx/conf.d:ro
     networks:
-      - web_network
+      - app-network
     depends_on:
       - appseed-app
     logging:
@@ -37,8 +35,6 @@ services:
         max-file: "3"
 
 networks:
-  db_network:
-    driver: bridge
-  web_network:
+  app-network:
     driver: bridge
 
