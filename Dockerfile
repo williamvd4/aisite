@@ -13,7 +13,8 @@ COPY requirements.txt .
 
 # Install any needed packages specified in requirements.txt
 RUN apt-get update && apt-get install -y --no-install-recommends gcc libpq-dev musl-dev && \
-    pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+    pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt && \
+    rm -rf /var/lib/apt/lists/*
 
 # Copy the rest of the application code
 COPY . .
