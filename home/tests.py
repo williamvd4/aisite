@@ -7,13 +7,11 @@ class HomePageViewTest(TestCase):
 
     def test_home_page_status_code(self):
         request = self.factory.get('/')
-        view = HomePageView.as_view()
-        response = view(request)
-        self.assertEquals(response.status_code, 200)
+        response = HomePageView.as_view()(request)
+        self.assertEqual(response.status_code, 200)
 
     def test_home_page_content(self):
         request = self.factory.get('/')
-        view = HomePageView.as_view()
-        response = view(request)
+        response = HomePageView.as_view()(request)
         self.assertContains(response, "Welcome to my website!")
 
