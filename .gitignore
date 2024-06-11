@@ -27,10 +27,33 @@ gitignore_project_patterns: Union[str, List[str]] = [
 # Patterns to ignore in the 'src' directory
 gitignore_src_patterns: Union[str, List[str]] = []
 
-# Combine all ignore patterns
-gitignore_patterns: List[str] = (
-    gitignore_global_patterns + gitignore_project_patterns + gitignore_src_patterns
-)
 
-# Print the .gitignore file
-print(f"{'.gitignore'}\n{"\n".join(gitignore_patterns)}")
+def generate_gitignore_content(
+    global_patterns: Union[str, List[str]],
+    project_patterns: Union[str, List[str]],
+    src_patterns: Union[str, List[str]],
+) -> List[str]:
+    """Generate .gitignore file content.
+
+    Args:
+        global_patterns (Union[str, List[str]]): Global patterns to ignore.
+        project_patterns (Union[str, List[str]]): Project-specific patterns to ignore.
+        src_patterns (Union[str, List[str]]): 'src' directory-specific patterns to ignore.
+
+    Returns:
+        List[str]: List of ignore patterns.
+    """
+    return (
+        global_patterns + project_patterns + src_patterns
+    )
+
+
+if __name__ == "__main__":
+    gitignore_patterns = generate_gitignore_content(
+        global_patterns=gitignore_global_patterns,
+        project_patterns=gitignore_project_patterns,
+        src_patterns=gitignore_src_patterns,
+    )
+
+    # Print the .gitignore file
+    print(f"{'.gitignore'}\n{"\n".join(gitignore_patterns)}")
