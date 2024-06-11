@@ -2,9 +2,13 @@ from django.apps import AppConfig
 
 class HomeConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "app_name"  # replace 'app_name' with the actual name of the app
+    name = "your_app_name"  # replace 'your_app_name' with the actual name of your app
 
     def ready(self):
-        # import any models or perform any other setup here
-        from . import signals  # replace 'signals' with the actual name of the signals module, if any
-
+        """
+        Import any models or perform any other setup here.
+        """
+        try:
+            import your_app_name.signals  # replace 'your_app_name' with the actual name of your app
+        except ImportError:
+            pass
