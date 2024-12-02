@@ -1,0 +1,113 @@
+{% extends 'layouts/base_background.html' %}
+{% load static %}
+
+{% block body %} class="index-page bg-gray-200" {% endblock body %}
+
+{% block content %}
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="text-center mb-4">My Curriculum</h3>
+      <div id="curriculumFiles" class="row">
+        {% for curriculum in curriculums %}
+          <div class="col-md-4 mb-3">
+            <div class="card">
+              <div class="card-body text-center">
+                <p class="card-title">{{ curriculum.title }}</p>
+                <a href="{{ curriculum.file.url }}" target="_blank" class="btn btn-primary">View File</a>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="text-center mb-4">Upcoming</h3>
+      <!-- Add upcoming content here -->
+    </div>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-12 text-center">
+      <button type="button" class="btn btn-primary" onclick="showUploadForm()">Add Curriculum</button>
+    </div>
+  </div>
+
+  <div class="row mt-3">
+    <div class="col-md-6 mx-auto">
+      <form id="uploadForm" action="{% url 'upload_curriculum' %}" method="POST" enctype="multipart/form-data" style="display: none;">
+        {% csrf_token %}
+        <div class="input-group mb-3">
+          <input type="file" class="form-control" name="file" id="curriculumFile">
+          <button class="btn btn-outline-secondary" type="submit">Upload</button>
+        </div>
+      </form>
+      <div id="uploadMessage" class="alert" style="display: none;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showUploadForm() {
+  document.getElementById('uploadForm').style.display = 'block';
+}
+
+function addCurriculumFile(fileName, fileUrl) {
+  const fileDiv = document.createElement('div');
+  fileDiv.className = 'col-md-4 mb-3';
+  
+  fileDiv.innerHTML = `
+    <div class="card">
+      <div class="card-body text-center">
+        <p class="card-title">${fileName}</p>
+        <a href="${fileUrl}" target="_blank" class="btn btn-primary">View File</a>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('curriculumFiles').appendChild(fileDiv);
+}
+
+document.getElementById('uploadForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const formData = new FormData(this);
+  
+  fetch('{% url "upload_curriculum" %}', {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'X-CSRFToken': '{{ csrf_token }}'
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    const messageDiv = document.getElementById('uploadMessage');
+    if (data.message) {
+      messageDiv.textContent = data.message;
+      messageDiv.className = 'alert alert-success';
+      messageDiv.style.display = 'block';
+      
+      // Add the new file to the list
+      addCurriculumFile(data.file_name, data.file_url);
+      
+      // Clear the file input
+      document.getElementById('curriculumFile').value = '';
+    } else if (data.error) {
+      messageDiv.textContent = data.error;
+      messageDiv.className = 'alert alert-danger';
+      messageDiv.style.display = 'block';
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    const messageDiv = document.getElementById('uploadMessage');
+    messageDiv.textContent = 'An error occurred during upload.';
+    messageDiv.className = 'alert alert-danger';
+    messageDiv.style.display = 'block';
+  });
+});
+</script>
+
+{% endblock %}

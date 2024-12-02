@@ -1,0 +1,14 @@
+
+              <li class="nav-item dropdown dropdown-hover mx-2">
+                <a class="nav-link ps-2 d-flex cursor-pointer align-items-center" id="dropdownMenuBlocks"
+                  data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="material-icons opacity-6 me-2 text-md">view_day</i>
+                  Resources
+                  <img src="{% static 'img/down-arrow-dark.svg' %}" alt="down-arrow" class="arrow ms-auto ms-md-2">
+                </a>
+                <a href="{% url 'myresources' %}" class="dropdown-item border-radius-md">
+                  <span>My Resources</span>
+                </a>
+                <a href="{% url 'mycurriculums' %}" class="dropdown-item border-radius-md">
+                  <span>My Curriculums</span>
+                </a>
