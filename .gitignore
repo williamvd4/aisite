@@ -1,5 +1,8 @@
 from typing import List, Union
 
+
+.venv
+
 # Global pattern to ignore VCS directories
 gitignore_global_patterns: Union[str, List[str]] = [
     "*.pyc",
