@@ -1,2 +1,69 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+@echo off
+setlocal enabledelayedexpansion
+
+:: Set the default code page to UTF-8
+chcp 65001 > nul
+
+:: Check if a file was specified
+if "%~1" == "" (
+    echo Usage: %0 input_file
+    goto :end
+)
+
+:: Set the input and output file names
+set "input_file=%~1"
+set "output_file=!input_file!.tmp"
+
+:: Check if the input file exists
+if not exist "!input_file!" (
+    echo Error: file not found: !input_file!
+    goto :end
+)
+
+:: Check if the input and output files are the same
+if "!input_file!" == "!output_file!" (
+    echo Error: input and output files cannot be the same
+    goto :end
+)
+
+:: Check if the input file has one of the specified extensions
+set "exts=asm ax bat cmd c cpp h idl log properties resources settings site
+map sln suo tlh tmp txt url htm html inf inf res xml def dat db description
+diz embed ini""
+set "file_ext=!input_file!"
+for %%x in (!exts!) do (
+    if "!file_ext!" neq "!input_file!" if /I "!file_ext:~-"%%~x""=="%%~x"" (
+        call :LF_normalization
+        goto :end
+    )
+)
+
+:end
+endlocal
+goto :eof
+
+:LF_normalization
+
+:: Check if the output file can be created
+if exist "!output_file!" del "!output_file!"
+
+:: Perform LF normalization on the file
+for /F "tokens=1* delims=:" %%A in ('findstr /R /N "^" "!input_file!"') do (
+    set "line=%%B"
+    if not "!line!"=="" (
+        set "has_lf=0"
+        set "line=!line:^M=!"
+        if "!line!" neq "%%B" (
+            set "has_lf=1"
+        )
+        echo(!line!>>"!output_file!"
+        if "!has_lf!" == "1" echo(>>"!output_file!"
+    )
+)
+
+:: Move the output file to the input file
+move /Y "!output_file!" "!input_file!" > nul
+
+:: Reset CHCP to the previous code page
+chcp %1 > nul
+goto :eof

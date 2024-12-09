@@ -1,3 +1,4 @@
+# Import the necessary modules
 from django.contrib import admin
 from .models import MyFormModel, Lesson, Curriculum, Resource, Material
 
