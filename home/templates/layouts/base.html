@@ -14,11 +14,6 @@
 <!DOCTYPE html>
 <html lang="en" itemscope itemtype="http://schema.org/WebPage">
 <head>
-  <header>
-    <div class="header-image" style="background-image: url('{% static 'img/background.jpg' %}')">
-        <h1>Your Site Title</h1>
-    </div>
-</header>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link rel="apple-touch-icon" sizes="76x76" href="{% static 'img/apple-icon.png' %}">
@@ -43,7 +38,12 @@
 <body {% block body %}{% endblock body %} >
 
   {% block header %}
-  <div style="margin-bottom: 150px;">
+</head>
+<header>
+    <div class="header-image" style="background-image: url('{% static 'img/background.jpg' %}')">
+        <h1>Your Site Title</h1>
+    </div>
+</header>
 
     {% include 'includes/navigation.html' %}
   </div>
