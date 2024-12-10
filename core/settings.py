@@ -19,7 +19,7 @@ from str2bool import str2bool
 
 load_dotenv()  # take environment variables from .env.
 
-COHERE_API_KEY = "XKfdQ4AvoD3jIr2UUaiw6MtvKVeDLUVXDa0x9D77"
+COHERE_API_KEY = os.environ.get('COHERE_API_KEY')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
