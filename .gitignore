@@ -1,62 +1,21 @@
-from typing import List, Union
+// filepath: /C:/Users/allie/Desktop/CODES/aisite/.gitignore
+# Ignore virtual environment directories
+.venv/
+env/
 
+# Ignore Python cache files
+__pycache__/
+*.pyc
 
-.venv
+# Ignore database files
+*.sqlite3
 
-# Global pattern to ignore VCS directories
-gitignore_global_patterns: Union[str, List[str]] = [
-    "*.pyc",
-    "*.DS_Store",
-    "*.egg*",
-    "thumbs.db",
-    "picasa.ini",
-    ".Spotlight-V100",
-    "._*",
-    "node_modules",
-    ".npm",
-    "pip-log.txt",
-    "pip-delete-this-directory.txt",
-    "**/__pycache__",
-]
+# Ignore environmental variables files
+.env
 
-# Patterns to ignore in the project root directory
-gitignore_project_patterns: Union[str, List[str]] = [
-    "*.sqlite*",
-    ".env",
-    "env",
-    ".venv",
-]
+# Ignore node modules
+node_modules/
 
-# Patterns to ignore in the 'src' directory
-gitignore_src_patterns: Union[str, List[str]] = []
-
-
-def generate_gitignore_content(
-    global_patterns: Union[str, List[str]],
-    project_patterns: Union[str, List[str]],
-    src_patterns: Union[str, List[str]],
-) -> List[str]:
-    """Generate .gitignore file content.
-
-    Args:
-        global_patterns (Union[str, List[str]]): Global patterns to ignore.
-        project_patterns (Union[str, List[str]]): Project-specific patterns to ignore.
-        src_patterns (Union[str, List[str]]): 'src' directory-specific patterns to ignore.
-
-    Returns:
-        List[str]: List of ignore patterns.
-    """
-    return (
-        global_patterns + project_patterns + src_patterns
-    )
-
-
-if __name__ == "__main__":
-    gitignore_patterns = generate_gitignore_content(
-        global_patterns=gitignore_global_patterns,
-        project_patterns=gitignore_project_patterns,
-        src_patterns=gitignore_src_patterns,
-    )
-
-    # Print the .gitignore file
-    print(f"{'.gitignore'}\n{"\n".join(gitignore_patterns)}")
+# Ignore system files
+*.DS_Store
+Thumbs.db
