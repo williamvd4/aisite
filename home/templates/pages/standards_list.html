@@ -1,0 +1,79 @@
+{% extends 'layouts/base.html' %}
+{% block title %} Academic Standards {% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Academic Standards</h1>
+            <p class="lead">Browse all extracted academic standards by state and subject</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col">
+            <div class="accordion" id="accordionStandards">
+                {% for state, subjects in grouped_standards.items %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading-{{ state|slugify }}">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#collapse-{{ state|slugify }}" aria-expanded="false" 
+                                    aria-controls="collapse-{{ state|slugify }}">
+                                {{ state }}
+                            </button>
+                        </h2>
+                        <div id="collapse-{{ state|slugify }}" class="accordion-collapse collapse" 
+                             aria-labelledby="heading-{{ state|slugify }}" data-bs-parent="#accordionStandards">
+                            <div class="accordion-body">
+                                <div class="accordion" id="accordionSubjects-{{ state|slugify }}">
+                                    {% for subject, standards in subjects.items %}
+                                        <div class="accordion-item">
+                                            <h3 class="accordion-header" id="heading-{{ state|slugify }}-{{ subject|slugify }}">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                                        data-bs-target="#collapse-{{ state|slugify }}-{{ subject|slugify }}" 
+                                                        aria-expanded="false" 
+                                                        aria-controls="collapse-{{ state|slugify }}-{{ subject|slugify }}">
+                                                    {{ subject }}
+                                                </button>
+                                            </h3>
+                                            <div id="collapse-{{ state|slugify }}-{{ subject|slugify }}" 
+                                                 class="accordion-collapse collapse" 
+                                                 aria-labelledby="heading-{{ state|slugify }}-{{ subject|slugify }}" 
+                                                 data-bs-parent="#accordionSubjects-{{ state|slugify }}">
+                                                <div class="accordion-body">
+                                                    <div class="table-responsive">
+                                                        <table class="table table-hover">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Identifier</th>
+                                                                    <th>Description</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {% for standard in standards %}
+                                                                <tr>
+                                                                    <td><strong>{{ standard.identifier }}</strong></td>
+                                                                    <td>{{ standard.description }}</td>
+                                                                </tr>
+                                                                {% endfor %}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="alert alert-info">
+                        No standards have been extracted yet. Upload and process documents containing standards to see them here.
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

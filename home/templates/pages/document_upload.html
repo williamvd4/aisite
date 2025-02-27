@@ -1,0 +1,61 @@
+{% extends 'layouts/base.html' %}
+{% block title %} Document Upload {% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Upload Document</h2>
+                    <p class="card-text">Upload curriculum documents or state standards for processing</p>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-group mb-3">
+                            <label for="title">Document Title*</label>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="description">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="document_type">Document Type*</label>
+                            <select class="form-control" id="document_type" name="document_type" required>
+                                <option value="">Select a document type</option>
+                                <option value="curriculum">Curriculum Document</option>
+                                <option value="standards">State Standards</option>
+                                <option value="lesson_plan">Lesson Plan</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="file">Document File*</label>
+                            <input type="file" class="form-control" id="file" name="file" required>
+                            <small class="form-text text-muted">Supported formats: PDF, DOCX, TXT, HTML</small>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'home:documents_list' %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Upload Document</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

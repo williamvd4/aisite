@@ -1,0 +1,138 @@
+{% extends 'layouts/base.html' %}
+{% block title %} Documents List {% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col d-flex justify-content-between align-items-center">
+            <h1>Documents</h1>
+            <a href="{% url 'home:document_upload' %}" class="btn btn-primary">Upload New Document</a>
+        </div>
+    </div>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Type</th>
+                                    <th>Format</th>
+                                    <th>Processed</th>
+                                    <th>Uploaded</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for document in documents %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'home:document_detail' document.id %}">{{ document.title }}</a>
+                                    </td>
+                                    <td>
+                                        {% if document.document_type == 'curriculum' %}
+                                            <span class="badge bg-primary">Curriculum</span>
+                                        {% elif document.document_type == 'standards' %}
+                                            <span class="badge bg-success">Standards</span>
+                                        {% elif document.document_type == 'lesson_plan' %}
+                                            <span class="badge bg-info">Lesson Plan</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Other</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ document.file_type|upper }}</td>
+                                    <td>
+                                        {% if document.processed %}
+                                            <span class="badge bg-success">Yes</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">No</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ document.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <a href="{% url 'home:document_detail' document.id %}" class="btn btn-sm btn-primary">View</a>
+                                        {% if not document.processed %}
+                                            <button class="btn btn-sm btn-success process-document" data-id="{{ document.id }}">Process</button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center">No documents uploaded yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const processButtons = document.querySelectorAll('.process-document');
+        
+        processButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const documentId = this.getAttribute('data-id');
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+                
+                fetch(`/documents/${documentId}/process/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        window.location.href = `/documents/${documentId}/`;
+                    } else {
+                        alert('Error processing document: ' + data.message);
+                        this.disabled = false;
+                        this.textContent = 'Process';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error processing document');
+                    this.disabled = false;
+                    this.textContent = 'Process';
+                });
+            });
+        });
+        
+        // Function to get CSRF token from cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

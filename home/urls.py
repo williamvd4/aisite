@@ -2,31 +2,15 @@ from django.urls import path
 
 from . import views
 
-app_name = 'your_app'  # replace with your app name
+app_name = 'home'
 
 urlpatterns = [
-    path('', views.IndexView.as_view(), name='index'),
-    path('about/', views.AboutView.as_view(), name='about'),
-    path('contact/', views.ContactView.as_view(), name='contact'),
-    path('login/', views.LoginView.as_view(), name='login'),
-    path('logout/', views.LogoutView.as_view(), name='logout'),
+    path('', views.home, name='index'),
+    path('documents/', views.documents_list, name='documents_list'),
+    path('documents/upload/', views.document_upload, name='document_upload'),
+    path('documents/<uuid:document_id>/', views.document_detail, name='document_detail'),
+    path('documents/<uuid:document_id>/process/', views.process_document, name='process_document'),
+    path('standards/', views.standards_list, name='standards_list'),
+    path('api/documents/<uuid:document_id>/content/', views.api_document_content, name='api_document_content'),
+    path('api/documents/<uuid:document_id>/content/<str:content_type>/', views.api_document_content, name='api_document_content_type'),
 ]
-
-
-from django.shortcuts import render
-from django.views.generic import TemplateView
-
-def IndexView(request):
-    return render(request, 'index.html')
-
-def AboutView(request):
-    return render(request, 'about.html')
-
-def ContactView(request):
-    return render(request, 'contact.html')
-
-def LoginView(request):
-    return render(request, 'login.html')
-
-def LogoutView(request):
-    return render(request, 'logout.html')

@@ -1,34 +1,17 @@
-#!/usr/bin/env python
-"""Django's command-line utility for administrative tasks."""
+
 import os
 import sys
-from typing import List, Tuple, Optional
-from django.core.management import execute_from_command_line
-from django.core.exceptions import ImproperlyConfigured
 
-def main(argv: Tuple[str]) -> None:
+def main():
     """Run administrative tasks."""
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
     try:
-        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
-        import django  # noqa: F401
-    except ImproperlyConfigured as e:
-        error_msg = (
-            "Django settings module not found. Make sure it's installed and "
-            "configured correctly. Error: {}"
-        ).format(e)
-        raise ImproperlyConfigured(error_msg)
-    except ImportError as e:
-        error_msg = (
-            "Couldn't import Django. Make sure it's installed and available "
-            "on your PYTHONPATH environment variable. If you're using a "
-            "virtual environment, did you remember to activate it?"
-        )
-        raise ImportError(error_msg) from e
+        from django.core.management import execute_from_command_line
+    except ImportError as exc:
+        raise ImportError(
+            "Couldn't import Django. Are you in a virtual environment?"
+        ) from exc
+    execute_from_command_line(sys.argv)
 
-    try:
-        execute_from_command_line(argv)
-    except Exception as e:  # pylint: disable=broad-except
-        error_msg = (
-            "An error occurred while executing the command. Error: {}"
-        ).format(e)
-        raise Exception(error_msg) from e
+if __name__ == '__main__':
+    main()

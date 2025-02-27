@@ -1,14 +1,42 @@
-# Import the necessary modules
 from django.contrib import admin
-from myapp.models import MyModel  # Replace this with the actual name of your model
+from .models import Document, ExtractedContent, StandardsMetadata, Standard, ProcessingJob
 
-# Register the model with the admin site
-# The list_display argument allows you to specify which fields to display in the admin change list page
-# The list_filter argument allows you to specify which fields to use for filtering the model instances in the admin change list page
-# The search_fields argument allows you to specify which fields to use for searching the model instances in the admin change list page
-@admin.register(MyModel)
-class MyModelAdmin(admin.ModelAdmin):
-    list_display = ('field1', 'field2')  # Replace field1 and field2 with the actual names of the fields you want to display
-    list_filter = ('field3',)  # Replace field3 with the actual name of the field you want to use for filtering
-    search_fields = ('field4',)  # Replace field4 with the actual name of the field you want to use for searching
+@admin.register(Document)
+class DocumentAdmin(admin.ModelAdmin):
+    list_display = ('title', 'document_type', 'file_type', 'processed', 'created_at')
+    list_filter = ('document_type', 'file_type', 'processed')
+    search_fields = ('title', 'description')
+    date_hierarchy = 'created_at'
 
+@admin.register(ExtractedContent)
+class ExtractedContentAdmin(admin.ModelAdmin):
+    list_display = ('document', 'content_type', 'created_at')
+    list_filter = ('content_type',)
+    search_fields = ('document__title', 'content_type')
+    date_hierarchy = 'created_at'
+
+@admin.register(StandardsMetadata)
+class StandardsMetadataAdmin(admin.ModelAdmin):
+    list_display = ('state', 'subject', 'grade_level', 'year_published')
+    list_filter = ('state', 'subject', 'year_published')
+    search_fields = ('state', 'subject', 'grade_level')
+    date_hierarchy = 'created_at'
+
+@admin.register(Standard)
+class StandardAdmin(admin.ModelAdmin):
+    list_display = ('identifier', 'description_truncated', 'metadata')
+    list_filter = ('metadata__state', 'metadata__subject')
+    search_fields = ('identifier', 'description')
+    
+    def description_truncated(self, obj):
+        if len(obj.description) > 100:
+            return obj.description[:100] + '...'
+        return obj.description
+    description_truncated.short_description = 'Description'
+
+@admin.register(ProcessingJob)
+class ProcessingJobAdmin(admin.ModelAdmin):
+    list_display = ('document', 'status', 'started_at', 'completed_at', 'created_at')
+    list_filter = ('status',)
+    search_fields = ('document__title', 'error_message')
+    date_hierarchy = 'created_at'

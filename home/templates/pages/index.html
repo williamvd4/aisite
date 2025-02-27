@@ -1,0 +1,113 @@
+{% extends 'layouts/base.html' %}
+{% block title %} Document Processing System {% endblock %}
+
+{% block content %}
+<div class="container mt-5 pt-5">
+    <div class="row align-items-center mb-5">
+        <div class="col-lg-8 text-center mx-auto">
+            <h1 class="display-3 fw-bold mb-3">Curriculum Document Processing</h1>
+            <p class="lead mb-4">
+                Extract structured information from curriculum documents and state standards to power AI-based lesson planning
+            </p>
+            <div class="d-flex flex-wrap justify-content-center gap-3">
+                <a href="{% url 'home:document_upload' %}" class="btn btn-primary btn-lg">Upload Document</a>
+                <a href="{% url 'home:documents_list' %}" class="btn btn-outline-primary btn-lg">View Documents</a>
+                <a href="{% url 'home:standards_list' %}" class="btn btn-outline-primary btn-lg">Browse Standards</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 py-5">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Document Extraction</h5>
+                    <p class="card-text">
+                        Upload curriculum documents, state standards, or lesson plans in PDF, Word, or text formats. Our system will extract structured content automatically.
+                    </p>
+                    <a href="{% url 'home:document_upload' %}" class="btn btn-sm btn-outline-primary">Upload Now</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Standards Database</h5>
+                    <p class="card-text">
+                        Build a searchable database of academic standards from your documents. Browse by state, subject, and grade level.
+                    </p>
+                    <a href="{% url 'home:standards_list' %}" class="btn btn-sm btn-outline-primary">View Standards</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">AI Integration</h5>
+                    <p class="card-text">
+                        Structured data extracted from your documents is ready to feed into AI-powered lesson planning tools.
+                    </p>
+                    <a href="{% url 'home:documents_list' %}" class="btn btn-sm btn-outline-primary">View Documents</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if recent_documents %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <h2 class="mb-4">Recently Uploaded Documents</h2>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Type</th>
+                            <th>Processed</th>
+                            <th>Uploaded</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for document in recent_documents %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'home:document_detail' document.id %}">{{ document.title }}</a>
+                            </td>
+                            <td>
+                                {% if document.document_type == 'curriculum' %}
+                                    <span class="badge bg-primary">Curriculum</span>
+                                {% elif document.document_type == 'standards' %}
+                                    <span class="badge bg-success">Standards</span>
+                                {% elif document.document_type == 'lesson_plan' %}
+                                    <span class="badge bg-info">Lesson Plan</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Other</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if document.processed %}
+                                    <span class="badge bg-success">Yes</span>
+                                {% else %}
+                                    <span class="badge bg-warning">No</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ document.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                <a href="{% url 'home:document_detail' document.id %}" class="btn btn-sm btn-primary">View</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="text-center mt-3">
+                <a href="{% url 'home:documents_list' %}" class="btn btn-outline-primary">View All Documents</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
