@@ -1,50 +1,93 @@
-{% extends 'layouts/base_background.html' %}
+{% extends 'layouts/base.html' %}
 {% load static %}
 
-{% block body %} class="index-page bg-gray-200"{% endblock body %}
+{% block title %}My Calendar{% endblock %}
+
+{% block stylesheets %}
+{{ super }}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css" rel="stylesheet" />
+<style>
+    #calendar {
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .fc-event, .fc-event-dot {
+        background-color: #007bff !important; /* Bootstrap primary color for events */
+        border-color: #007bff !important;
+        color: #fff !important; /* White text for events */
+    }
+    .fc-event:hover {
+        background-color: #0056b3 !important; /* Darker shade on hover */
+    }
+    .fc-day-header {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+    .fc-toolbar h2 {
+        font-size: 1.5em;
+        color: #333;
+    }
+    .fc-button {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        color: #fff;
+    }
+    .fc-button:hover {
+        background-color: #5a6268;
+        border-color: #545b62;
+    }
+    .fc-today {
+        background: #ffc107 !important; /* Highlight today's date */
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-
-
-
-</div></div></div>
-<div class="container-fluid pt-3 pb-3">
-  <div class="row">
-    <div class="col-md-6">
-      <div id="calendar"></div>
-
-        <script>
-          document.addEventListener('DOMContentLoaded', function() {
-            var calendarEl = document.getElementById('calendar');
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-              initialView: 'dayGridMonth'
-            });
-            calendar.render();
-          });
-        </script>
-          <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
-
-  </div>
-  <div class="col-md-6">
-      <h2>Add Event</h2>
-        <form>
-          <label for="eventTitle">Event Title:</label>
-          <input type="text" id="eventTitle">
-          <br>
-          <label for="eventDate">Event Date:</label>
-          <input type="date" id="eventDate">
-          <br>
-          <label for="eventTime">Event Time:</label>
-          <input type="time" id="eventTime">
-          <br>
-          <label for="eventLocation">Event Location:</label>
-          <input type="text" id="eventLocation">
-          <br>
-          <input type="submit" value="Add Event">
-        </form>
-  </div>
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header pb-0">
+                    <h4 class="mb-0">My Lesson Calendar</h4>
+                    <p class="text-sm mb-0">Click on a lesson to view its details.</p>
+                </div>
+                <div class="card-body px-0 pt-0 pb-2">
+                    <div id="calendar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-</div>
+{% endblock %}
 
-
+{% block javascripts %}
+{{ super }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script> {# FullCalendar v3 might need jQuery #}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js"></script>
+<script>
+    $(document).ready(function() { // Use jQuery document ready for FullCalendar v3
+        $('#calendar').fullCalendar({
+            header: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'month,agendaWeek,agendaDay'
+            },
+            events: {{ events|safe }},
+            eventClick: function(calEvent, jsEvent, view) {
+                if (calEvent.url) {
+                    window.location.href = calEvent.url;
+                    return false; // Prevent browser from following link in current tab
+                }
+            },
+            dayMaxEvents: true, // Or a number like 3
+            editable: false, // Set to true if you want drag-and-drop
+            droppable: false // Set to true if you want to drop external events
+        });
+    });
+</script>
 {% endblock %}

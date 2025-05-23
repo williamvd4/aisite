@@ -23,7 +23,6 @@ urlpatterns = [
     path('create-resource/', views.create_resource, name='create_resource'),
     
     # Calendar and Curriculum
-    path('mycalendar/', views.mycalendar, name='mycalendar'),
     path('mycurriculums/', views.mycurriculums, name='mycurriculums'),
     path('upload-curriculum/', views.upload_curriculum, name='upload_curriculum'),
     
@@ -40,6 +39,7 @@ urlpatterns = [
     path('createnewlesson-legacy/', views.createnewlesson_legacy, name='createnewlesson_legacy'),
 
     path('profile/', views.profile_view, name='profile'),
+    path('mycalendar/', views.mycalendar_view, name='mycalendar'), # This is the correct one
 
     # Password Reset URLs
     path('password_reset/', auth_views.PasswordResetView.as_view(template_name='registration/password_reset_form.html', email_template_name='registration/password_reset_email.html', subject_template_name='registration/password_reset_subject.txt', success_url=reverse_lazy('home:password_reset_done')), name='password_reset'),

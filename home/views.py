@@ -10,6 +10,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.conf import settings
 import cohere
+import json
 
 from .forms import (MyForm, LessonPlanForm, MaterialForm, ResourceForm, 
                    CustomUserCreationForm, LessonSearchForm, UserProfileForm)
@@ -172,12 +173,18 @@ def delete_lesson(request, pk):
     return render(request, "pages/lesson_plan_confirm_delete.html", {"lesson_plan": lesson}) # Changed template and context variable
 
 
-def mycalendar(request):
-    """Calendar view with scheduled lessons"""
-    if request.user.is_authenticated:
-        scheduled_lessons = LessonSchedule.objects.filter(user=request.user)
-        return render(request, "pages/mycalendar.html", {'scheduled_lessons': scheduled_lessons})
-    return render(request, "pages/mycalendar.html")
+@login_required
+def mycalendar_view(request):
+    lesson_plans = LessonPlan.objects.filter(user=request.user, lesson_date__isnull=False)
+    events = []
+    for lesson in lesson_plans:
+        events.append({
+            'title': lesson.title,
+            'start': lesson.lesson_date.strftime("%Y-%m-%d"),
+            'url': reverse('home:lesson_detail', args=[lesson.pk]),
+            'allDay': True
+        })
+    return render(request, 'pages/mycalendar.html', {'events': json.dumps(events)})
 
 
 @login_required
