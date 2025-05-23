@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
-
+import environ
 import os
 import random
 import string
@@ -19,11 +19,26 @@ from str2bool import str2bool
 
 load_dotenv()  # take environment variables from .env.
 
-COHERE_API_KEY = "XKfdQ4AvoD3jIr2UUaiw6MtvKVeDLUVXDa0x9D77"
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+env = environ.Env(
+    # set casting, default value
+    DEBUG=(bool, False)
+)
+
+
+env_file_path = BASE_DIR / '.env'
+if env_file_path.exists():
+    environ.Env.read_env(str(env_file_path))
+else:
+    print(f"Warning: .env file not found at {env_file_path}")
+
+
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
@@ -155,6 +170,10 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
+
+# Media files (user-uploaded content)
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field

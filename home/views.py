@@ -9,7 +9,6 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.conf import settings
-import cohere
 import json
 
 from .forms import (MyForm, LessonPlanForm, MaterialForm, ResourceForm, 
@@ -17,7 +16,7 @@ from .forms import (MyForm, LessonPlanForm, MaterialForm, ResourceForm,
 from .models import (MyFormModel, LessonPlan, Material, Resource, Curriculum, 
                     Subject, Grade, Standard, LessonSchedule)
 from .ai.ai_review import review_lesson, generate_ai_response
-from .ai.ai_utils import analyze_text
+from .ai.ai_utils import extract_text_from_pdf # Only import extract_text_from_pdf
 
 
 def home(request):
@@ -29,12 +28,24 @@ def home(request):
     total_lessons = LessonPlan.objects.filter(user=request.user).count()
     total_materials = Material.objects.filter(user=request.user).count()
     total_resources = Resource.objects.filter(user=request.user).count()
+
+    # Prepare calendar events
+    lesson_plans_for_calendar = LessonPlan.objects.filter(user=request.user, lesson_date__isnull=False)
+    calendar_events = []
+    for lesson in lesson_plans_for_calendar:
+        calendar_events.append({
+            'title': lesson.title,
+            'start': lesson.lesson_date.strftime("%Y-%m-%d"),
+            'url': reverse('home:lesson_detail', args=[lesson.pk]),
+            'allDay': True
+        })
     
     context = {
         'recent_lessons': recent_lessons,
         'total_lessons': total_lessons,
         'total_materials': total_materials,
         'total_resources': total_resources,
+        'calendar_events': json.dumps(calendar_events) # Add events to context
     }
     
     return render(request, "pages/home.html", context)
@@ -48,37 +59,49 @@ def welcome(request):
 def mylessonplans(request):
     """Enhanced lesson plans listing with search and filtering"""
     form = LessonSearchForm(request.GET)
-    lessons = LessonPlan.objects.filter(user=request.user)
+    lessons_query = LessonPlan.objects.filter(user=request.user) # Renamed for clarity
     
     if form.is_valid():
-        query = form.cleaned_data.get('query')
+        title_query = form.cleaned_data.get('title') # Changed from query to title_query
         subject = form.cleaned_data.get('subject')
         grade = form.cleaned_data.get('grade')
-        duration = form.cleaned_data.get('duration')
+        # duration = form.cleaned_data.get('duration') # Duration filter was removed from form
         
-        if query:
-            lessons = lessons.filter(
-                Q(title__icontains=query) | 
-                Q(description__icontains=query) |
-                Q(learning_objectives__icontains=query)
+        if title_query:
+            lessons_query = lessons_query.filter(
+                Q(title__icontains=title_query) | 
+                Q(description__icontains=title_query) |
+                Q(learning_objectives__icontains=title_query)
             )
         if subject:
-            lessons = lessons.filter(subject=subject)
+            lessons_query = lessons_query.filter(subject=subject)
         if grade:
-            lessons = lessons.filter(grade=grade)
-        if duration:
-            lessons = lessons.filter(duration=duration)
+            lessons_query = lessons_query.filter(grade=grade)
+        # if duration:
+        #     lessons_query = lessons_query.filter(duration=duration)
     
     # Pagination
-    paginator = Paginator(lessons.order_by('-updated_at'), 10)
+    paginator = Paginator(lessons_query.order_by('-updated_at'), 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
+    # Prepare calendar events (using the potentially filtered queryset)
+    lesson_plans_for_calendar = lessons_query.filter(lesson_date__isnull=False)
+    calendar_events = []
+    for lesson in lesson_plans_for_calendar:
+        calendar_events.append({
+            'title': lesson.title,
+            'start': lesson.lesson_date.strftime("%Y-%m-%d"),
+            'url': reverse('home:lesson_detail', args=[lesson.pk]),
+            'allDay': True
+        })
     
     return render(request, "pages/mylessonplans.html", {
         'page_obj': page_obj,
-        'search_form': form,  # Changed from 'form' to 'search_form'
-        'lesson_plans': page_obj.object_list,  # Changed from 'lessons': page_obj
-        'is_paginated': page_obj.has_other_pages() # Added for pagination template logic
+        'search_form': form,
+        'lesson_plans': page_obj.object_list,
+        'is_paginated': page_obj.has_other_pages(),
+        'calendar_events': json.dumps(calendar_events) # Add events to context
     })
 
 
@@ -86,7 +109,8 @@ def mylessonplans(request):
 def lesson_detail(request, pk):
     """Detailed lesson plan view with AI feedback"""
     lesson = get_object_or_404(LessonPlan, pk=pk, user=request.user)
-    ai_feedback = analyze_text(lesson.description)
+    # ai_feedback = analyze_text(lesson.description) # Removed Cohere-specific feedback
+    ai_feedback = None # Or some other placeholder if you plan to add Gemini feedback here later
     return render(request, "pages/lesson_plan_detail.html", {
         'lesson_plan': lesson,  # Changed context variable name
         'ai_feedback': ai_feedback
@@ -100,7 +124,24 @@ def createnewlesson(request):
         # Handle AJAX AI chat requests
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             user_input = request.POST.get("ai_input", "")
-            ai_response = generate_ai_response(user_input)
+            selected_curriculum_ids = request.POST.getlist("curriculum_ids[]") # Get selected curriculum IDs
+            
+            context_text = ""
+            if selected_curriculum_ids:
+                selected_curriculums = Curriculum.objects.filter(user=request.user, id__in=selected_curriculum_ids)
+                for curriculum_doc in selected_curriculums:
+                    if curriculum_doc.file:
+                        # Make sure the file is opened in binary mode for PyPDF2
+                        with curriculum_doc.file.open('rb') as f:
+                            extracted = extract_text_from_pdf(f)
+                            if extracted:
+                                context_text += f"\n\n--- From Curriculum: {curriculum_doc.title} ---\n{extracted}"
+            
+            full_prompt = user_input
+            if context_text:
+                full_prompt += f"\n\n--- Relevant Curriculum Context ---{context_text}" # Corrected string concatenation
+
+            ai_response = generate_ai_response(full_prompt)
             return JsonResponse({"ai_response": ai_response})
         
         # Handle lesson creation
@@ -109,7 +150,7 @@ def createnewlesson(request):
             lesson = form.save(commit=False)
             lesson.user = request.user
             lesson.save()
-            form.save_m2m()  # Save many-to-many relationships
+            form.save_m2m()  # Save many-to-many relationships (including selected curriculums)
             messages.success(request, f"Lesson '{lesson.title}' created successfully!")
             return redirect('home:lesson_detail', pk=lesson.pk)
         else:
@@ -117,7 +158,9 @@ def createnewlesson(request):
     else:
         form = LessonPlanForm(user=request.user)
 
-    return render(request, "pages/createnewlesson.html", {"form": form})
+    # Pass all user's curriculums to the template for the AI chat selection
+    user_curriculums = Curriculum.objects.filter(user=request.user)
+    return render(request, "pages/createnewlesson.html", {"form": form, "user_curriculums": user_curriculums})
 
 
 @login_required
@@ -126,9 +169,32 @@ def edit_lesson(request, pk):
     lesson = get_object_or_404(LessonPlan, pk=pk, user=request.user)
     
     if request.method == "POST":
+        # Handle AJAX AI chat requests (similar to createnewlesson)
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            user_input = request.POST.get("ai_input", "")
+            selected_curriculum_ids = request.POST.getlist("curriculum_ids[]")
+            
+            context_text = ""
+            if selected_curriculum_ids:
+                selected_curriculums = Curriculum.objects.filter(user=request.user, id__in=selected_curriculum_ids)
+                for curriculum_doc in selected_curriculums:
+                    if curriculum_doc.file:
+                        with curriculum_doc.file.open('rb') as f:
+                            extracted = extract_text_from_pdf(f)
+                            if extracted:
+                                context_text += f"\n\n--- From Curriculum: {curriculum_doc.title} ---\n{extracted}"
+            
+            full_prompt = user_input
+            if context_text:
+                full_prompt += f"\n\n--- Relevant Curriculum Context ---{context_text}" # Corrected string concatenation
+
+            ai_response = generate_ai_response(full_prompt)
+            return JsonResponse({"ai_response": ai_response})
+
         form = LessonPlanForm(request.POST, instance=lesson, user=request.user)
         if form.is_valid():
             lesson = form.save()
+            form.save_m2m() # Ensure curriculums are saved on edit too
             messages.success(request, f"Lesson '{lesson.title}' updated successfully!")
             return redirect('home:lesson_detail', pk=lesson.pk) # Added namespace
         else:
@@ -136,7 +202,8 @@ def edit_lesson(request, pk):
     else:
         form = LessonPlanForm(instance=lesson, user=request.user)
 
-    return render(request, "pages/lesson_plan_form.html", {"form": form, "lesson": lesson})
+    user_curriculums = Curriculum.objects.filter(user=request.user)
+    return render(request, "pages/lesson_plan_form.html", {"form": form, "lesson": lesson, "user_curriculums": user_curriculums})
 
 
 @login_required
@@ -192,6 +259,18 @@ def mycurriculums(request):
     """Enhanced curriculum management"""
     curriculums = Curriculum.objects.filter(user=request.user)
     return render(request, "pages/mycurriculums.html", {"curriculums": curriculums})
+
+
+@login_required
+@require_POST # Ensure this view only accepts POST requests for safety
+def delete_curriculum(request, pk):
+    curriculum = get_object_or_404(Curriculum, pk=pk, user=request.user)
+    curriculum_title = curriculum.title
+    # Optionally, delete the actual file from storage
+    # curriculum.file.delete(save=False) # save=False to prevent saving the model again before full deletion
+    curriculum.delete()
+    messages.success(request, f'Curriculum "{curriculum_title}" deleted successfully!')
+    return redirect('home:mycurriculums')
 
 
 @login_required
@@ -317,6 +396,7 @@ def upload_curriculum(request):
             "message": "File uploaded successfully",
             "file_name": file.name,
             "file_url": curriculum.file.url,
+            "curriculum_pk": curriculum.pk  # Add curriculum_pk to the response
         })
     return JsonResponse({"error": "No file uploaded"}, status=400)
 

@@ -3,6 +3,31 @@
 
 {% block body %} class="index-page bg-gray-200" {% endblock body %}
 
+{% block stylesheets %}
+{{ super }}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css" rel="stylesheet" />
+<style>
+    /* Styles for the calendar on mylessonplans.html */
+    #calendar .fc-toolbar.fc-header-toolbar {
+        margin-bottom: 1em;
+    }
+    #calendar .fc-toolbar-title {
+        font-size: 1.5rem !important;
+    }
+    #calendar .fc-event {
+        background-color: #e91e63 !important; 
+        border-color: #e91e63 !important;
+        color: #ffffff !important;
+    }
+    #calendar .fc-event:hover {
+        background-color: #c2185b !important;
+    }
+    .card-body #calendar {
+        min-height: 400px; /* Default height for this calendar */
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-5">
     <div class="row mb-4">
@@ -149,15 +174,19 @@
         </div>
     {% endif %}
 
-    <!-- Calendar Section - Kept for future integration -->
+    <!-- Calendar Section -->
     <div class="row mt-5">
         <div class="col">
             <div class="card">
                 <div class="card-header p-3">
                     <h5 class="mb-0"><i class="material-icons opacity-10">calendar_today</i> Lesson Schedule</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-3">
+                    <div id="calendar-data" data-events='{{ calendar_events|safe }}' style="display: none;"></div>
                     <div id="calendar"></div>
+                     {% if not calendar_events or calendar_events == "[]" %}
+                    <p class="text-center text-muted mt-2"><small>No lessons scheduled for the current search/filters.</small></p>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -172,19 +201,34 @@
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     var calendarEl = document.getElementById('calendar');
+    var calendarDataEl = document.getElementById('calendar-data');
+    var calendarEvents = [];
+    if (calendarDataEl && calendarDataEl.getAttribute('data-events')) {
+        try {
+            calendarEvents = JSON.parse(calendarDataEl.getAttribute('data-events'));
+        } catch (e) {
+            console.error("Error parsing calendar events:", e);
+            calendarEvents = [];
+        }
+    }
+
     var calendar = new FullCalendar.Calendar(calendarEl, {
       initialView: 'dayGridMonth',
-      // TODO: Add event sources for lesson schedules
-      // events: [
-      //   {% for schedule in lesson_schedules %}
-      //   {
-      //     title: '{{ schedule.lesson_plan.title_safe }}', // Ensure title is safe
-      //     start: '{{ schedule.scheduled_date_iso }}T{{ schedule.start_time_iso|default:"" }}',
-      //     end: '{{ schedule.scheduled_date_iso }}T{{ schedule.end_time_iso|default:"" }}',
-      //     url: '{% url 'home:lesson_detail' schedule.lesson_plan.pk %}'
-      //   },
-      //   {% endfor %}
-      // ]
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,timeGridDay' // Standard views for this page
+      },
+      events: calendarEvents,
+      eventClick: function(info) {
+        info.jsEvent.preventDefault(); 
+        if (info.event.url) {
+          window.location.href = info.event.url;
+        }
+      },
+      dayMaxEvents: true, // Or a number like 2 or 3
+      editable: false,
+      height: 'auto' // Adjust height to content
     });
     calendar.render();
 
@@ -192,7 +236,7 @@
     const formSelects = document.querySelectorAll('form select');
     formSelects.forEach(select => {
         if (!select.classList.contains('form-select')) {
-            select.classList.add('form-control'); // Or 'form-select' if you prefer Bootstrap's default select styling
+            select.classList.add('form-control'); 
         }
     });
     const formInputs = document.querySelectorAll('form input[type="text"], form input[type="date"], form input[type="number"], form textarea');

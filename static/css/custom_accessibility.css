@@ -1,0 +1,105 @@
+/* Custom Accessibility Styles */
+
+body {
+    color: #212529; /* Darker default text color for better contrast */
+}
+
+/* Ensure sufficient contrast for links */
+a {
+    color: #0056b3; /* Darker blue for links */
+}
+
+a:hover {
+    color: #003d80; /* Even darker blue on hover */
+}
+
+/* Form elements within the main lesson form area */
+/* Targeting .col-xxl-7 to be specific to the lesson form column */
+.col-xxl-7 .card-body .form-control,
+.col-xxl-7 .card-body .form-select {
+    border: 1px solid #6c757d; /* Clearer borders for form inputs */
+    color: #212529; /* Darker text inside inputs */
+    background-color: #ffffff; /* Ensure background is light for dark text */
+}
+
+.col-xxl-7 .card-body .form-control:focus,
+.col-xxl-7 .card-body .form-select:focus {
+    border-color: #0056b3;
+    box-shadow: 0 0 0 0.25rem rgba(0, 86, 179, 0.25); /* Clearer focus indicator */
+}
+
+/* General form control styles (fallback or for other forms if needed) */
+.form-control,
+.form-select {
+    /* Styles from before, without !important, as a fallback */
+    border: 1px solid #6c757d;
+    color: #212529;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #0056b3;
+    box-shadow: 0 0 0 0.25rem rgba(0, 86, 179, 0.25);
+}
+
+/* Ensure labels are clearly associated and visible */
+label,
+.form-label {
+    color: #212529;
+    font-weight: bold; /* Make labels bolder */
+}
+
+/* Buttons: Ensure good contrast */
+.btn-primary {
+    background-color: #0056b3;
+    border-color: #0056b3;
+    color: #ffffff; /* Ensure text on buttons has high contrast */
+}
+
+.btn-primary:hover {
+    background-color: #004085;
+    border-color: #00376e;
+}
+
+/* Helper text and muted text */
+.text-muted {
+    color: #495057 !important; /* Darker muted text */
+}
+
+/* Card and chat history styling */
+.card {
+    border: 1px solid #ced4da; /* Add/ensure borders for cards */
+}
+
+#chat-history {
+    background-color: #f8f9fa; /* Light background for chat history for differentiation */
+    border: 1px solid #dee2e6; /* Border for chat history */
+    padding: 1rem; /* Add some padding */
+    color: #212529; /* Ensure chat text is dark */
+}
+
+#chat-history strong {
+    color: #0056b3; /* Make sender name stand out */
+}
+
+/* Specific to createnewlesson.html form fields if needed */
+.lesson-form-field .form-control { /* Example if you wrap form fields */
+    /* Additional specific styles */
+}
+
+/* Accessibility: Focus indicators for non-input elements if they become interactive */
+[tabindex="0"]:focus,
+.form-check-input:focus + .form-check-label {
+    outline: 2px solid #0056b3;
+    outline-offset: 2px;
+}
+
+/* Ensure curriculum selection checkboxes and labels are clear */
+#ai-curriculum-selection .form-check-label {
+    color: #212529;
+}
+
+#ai-curriculum-selection {
+    background-color: #ffffff; /* Ensure background is not too dark */
+}
+

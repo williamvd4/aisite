@@ -7,7 +7,7 @@
 
 <div class="container-fluid">
   <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-8"> <!-- Adjusted column width -->
       <h3 class="text-center mb-4">My Curriculum</h3>
       <div id="curriculumFiles" class="row">
         {% for curriculum in curriculums %}
@@ -15,14 +15,23 @@
             <div class="card">
               <div class="card-body text-center">
                 <p class="card-title">{{ curriculum.title }}</p>
-                <a href="{{ curriculum.file.url }}" target="_blank" class="btn btn-primary">View File</a>
+                <a href="{{ curriculum.file.url }}" target="_blank" class="btn btn-sm btn-info">View</a>
+                <!-- Delete Button and Form -->
+                <form action="{% url 'home:delete_curriculum' curriculum.pk %}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{ curriculum.title }}?');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                </form>
               </div>
             </div>
+          </div>
+        {% empty %}
+          <div class="col-12">
+            <p class="text-center">No curriculum files uploaded yet.</p>
           </div>
         {% endfor %}
       </div>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-4"> <!-- Adjusted column width -->
       <h3 class="text-center mb-4">Upcoming</h3>
       <!-- Add upcoming content here -->
     </div>
@@ -53,7 +62,7 @@ function showUploadForm() {
   document.getElementById('uploadForm').style.display = 'block';
 }
 
-function addCurriculumFile(fileName, fileUrl) {
+function addCurriculumFile(fileName, fileUrl, curriculumPk) { // Added curriculumPk
   const fileDiv = document.createElement('div');
   fileDiv.className = 'col-md-4 mb-3';
   
@@ -61,7 +70,11 @@ function addCurriculumFile(fileName, fileUrl) {
     <div class="card">
       <div class="card-body text-center">
         <p class="card-title">${fileName}</p>
-        <a href="${fileUrl}" target="_blank" class="btn btn-primary">View File</a>
+        <a href="${fileUrl}" target="_blank" class="btn btn-sm btn-info">View</a>
+        <form action="/curriculum/${curriculumPk}/delete/" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete ${fileName}?');">
+          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+          <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+        </form>
       </div>
     </div>
   `;
@@ -90,7 +103,12 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
       messageDiv.style.display = 'block';
       
       // Add the new file to the list
-      addCurriculumFile(data.file_name, data.file_url);
+      // Check if the empty message exists and remove it
+      const emptyMessage = document.querySelector('#curriculumFiles .col-12 p');
+      if (emptyMessage) {
+        emptyMessage.parentElement.remove();
+      }
+      addCurriculumFile(data.file_name, data.file_url, data.curriculum_pk);
       
       // Clear the file input
       document.getElementById('curriculumFile').value = '';

@@ -25,6 +25,7 @@ urlpatterns = [
     # Calendar and Curriculum
     path('mycurriculums/', views.mycurriculums, name='mycurriculums'),
     path('upload-curriculum/', views.upload_curriculum, name='upload_curriculum'),
+    path('curriculum/<int:pk>/delete/', views.delete_curriculum, name='delete_curriculum'), # New URL for deleting curriculum
     
     # Authentication
     path('signup/', views.signup, name='signup'),

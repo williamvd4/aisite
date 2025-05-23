@@ -3,6 +3,40 @@
 
 {% block body %} class="index-page bg-gray-200" {% endblock body %}
 
+{% block stylesheets %}
+{{ super }}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css" rel="stylesheet" />
+<style>
+    /* Custom styles for homepage calendar to be less intrusive */
+    #calendar .fc-toolbar.fc-header-toolbar {
+        margin-bottom: 0.5em;
+        font-size: 0.8rem; /* Smaller toolbar font */
+    }
+    #calendar .fc-toolbar-title {
+        font-size: 1.2rem !important; /* Smaller title */
+    }
+    #calendar .fc-daygrid-day-number {
+        font-size: 0.85em; /* Smaller day numbers */
+        padding: 0.3em;
+    }
+    #calendar .fc-event {
+        font-size: 0.75em; /* Smaller event text */
+        padding: 2px 4px;
+    }
+    #calendar .fc-col-header-cell-cushion {
+        font-size: 0.75em; /* Smaller day headers */
+        padding: 5px 0;
+    }
+    #calendar .fc-button {
+        font-size: 0.75rem !important; /* Smaller buttons */
+        padding: 0.4rem 0.8rem !important;
+    }
+    .card-body #calendar {
+        min-height: 350px; /* Ensure calendar has some height */
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-5">
     {% if user.is_authenticated %}
@@ -79,8 +113,11 @@
                     <h5 class="mb-0"><i class="material-icons opacity-10 me-2">calendar_today</i>Lesson Schedule</h5>
                 </div>
                 <div class="card-body p-3">
+                    <div id="calendar-data" data-events='{{ calendar_events|safe }}' style="display: none;"></div>
                     <div id="calendar"></div>
-                    <p class="text-center text-muted mt-2"><small>Upcoming lessons will appear here.</small></p>
+                    {% if not calendar_events or calendar_events == "[]" %}
+                    <p class="text-center text-muted mt-2"><small>No lessons scheduled yet. Add dates to your lesson plans!</small></p>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -138,15 +175,33 @@
     // Initialize FullCalendar
     var calendarEl = document.getElementById('calendar');
     if (calendarEl && typeof FullCalendar !== 'undefined') {
+      var calendarDataEl = document.getElementById('calendar-data');
+      var calendarEvents = [];
+      if (calendarDataEl && calendarDataEl.getAttribute('data-events')) {
+        try {
+            calendarEvents = JSON.parse(calendarDataEl.getAttribute('data-events'));
+        } catch (e) {
+            console.error("Error parsing calendar events:", e);
+            calendarEvents = []; // Default to empty array on error
+        }
+      }
+
       var calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         headerToolbar: {
-          left: 'prev,next today',
+          left: 'prev,next',
           center: 'title',
-          right: 'dayGridMonth,timeGridWeek'
+          right: 'today' // Simplified toolbar for homepage
         },
-        // TODO: Add event sources for lesson schedules from context if available
-        // events: [] 
+        events: calendarEvents,
+        eventClick: function(info) {
+            info.jsEvent.preventDefault(); 
+            if (info.event.url) {
+                window.location.href = info.event.url;
+            }
+        },
+        height: 'auto', // Adjust height to content
+        dayMaxEvents: 1 // Show only 1 event per day, then +more
       });
       calendar.render();
     }

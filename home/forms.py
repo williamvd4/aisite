@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth.models import User
-from .models import MyFormModel, LessonPlan, Subject, Grade, Standard, Material, Resource
+from .models import MyFormModel, LessonPlan, Subject, Grade, Standard, Material, Resource, Curriculum
 
 
 class MyForm(forms.ModelForm):
@@ -17,7 +17,14 @@ class LessonPlanForm(forms.ModelForm):
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         required=False
     )
-    
+    # New field for selecting curriculums
+    curriculums = forms.ModelMultipleChoiceField(
+        queryset=Curriculum.objects.none(), # Queryset will be set in __init__
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="Relevant Curriculums (for AI Assistance & Linking)"
+    )
+
     class Meta:
         model = LessonPlan
         fields = [
@@ -26,7 +33,7 @@ class LessonPlanForm(forms.ModelForm):
             'opening_activity', 'main_instruction', 'guided_practice',
             'independent_practice', 'closing_activity',
             'formative_assessment', 'summative_assessment', 'differentiation_strategies',
-            'homework_assignment', 'extension_activities', 'standards', 'is_public'
+            'homework_assignment', 'extension_activities', 'standards', 'curriculums', 'is_public' # Added 'curriculums'
         ]
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter lesson title'}),
@@ -55,6 +62,11 @@ class LessonPlanForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+
+        if user: # Ensure user is available
+            self.fields['curriculums'].queryset = Curriculum.objects.filter(user=user)
+        else:
+            self.fields['curriculums'].queryset = Curriculum.objects.none()
         
         # Filter standards based on selected subject and grade if available
         if 'subject' in self.data and 'grade' in self.data:
