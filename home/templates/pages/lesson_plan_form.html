@@ -1,0 +1,332 @@
+{% extends 'layouts/base_background.html' %}
+{% load static %}
+
+{% block title %}
+    {% if form.instance.pk %}
+        Edit Lesson Plan: {{ form.instance.title }}
+    {% else %}
+        Create New Lesson Plan
+    {% endif %}
+{% endblock title %}
+
+{% block body %} class="index-page bg-gray-200" {% endblock body %}
+
+{% block content %}
+<style>
+    /* Improve contrast for form inputs */
+    .form-control,
+    .form-select {
+        background-color: #ffffff !important; /* White background */
+        color: #000000 !important; /* Black text */
+        border: 1px solid #6c757d !important; /* Gray border for better definition */
+    }
+    .form-control::placeholder {
+        color: #6c757d !important; /* Lighter placeholder text */
+        opacity: 1; /* Ensure placeholder is visible */
+    }
+    .form-control:focus,
+    .form-select:focus {
+        background-color: #ffffff !important; /* White background on focus */
+        border-color: #007bff !important; /* Standard blue focus border */
+        box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25) !important; /* Standard blue focus shadow */
+    }
+    .form-check-input:checked {
+        background-color: #007bff !important;
+        border-color: #007bff !important;
+    }
+    label {
+        color: #000000 !important; /* Black labels for maximum readability */
+        font-weight: 600; /* Slightly bolder labels */
+    }
+    .card {
+        border: 1px solid #dee2e6; /* Add a light border to cards */
+    }
+    h5.text-secondary {
+        color: #343a40 !important; /* Darker section headers */
+    }
+</style>
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-md-12">
+            <div class="card">
+                <div class="card-header p-3">
+                    <h4 class="mb-0">
+                        <i class="material-icons opacity-10 me-2">{% if form.instance.pk %}edit{% else %}add_circle_outline{% endif %}</i>
+                        {% if form.instance.pk %}
+                            Edit Lesson Plan: {{ form.instance.title }}
+                        {% else %}
+                            Create New Lesson Plan
+                        {% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        {{ form.media }} {# For widgets like RichTextEditor if used #}
+
+                        <div class="row">
+                            <!-- Basic Information -->
+                            <div class="col-md-12 mb-3">
+                                <h5 class="text-secondary">Basic Information</h5>
+                                <hr class="mt-1 mb-3">
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                {{ form.title.label_tag }} 
+                                {{ form.title }}
+                                {% if form.title.errors %}<div class="invalid-feedback d-block">{{ form.title.errors|join:", " }}</div>{% endif %}
+                                {% if form.title.help_text %}<small class="form-text text-muted">{{ form.title.help_text }}</small>{% endif %}
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                {{ form.description.label_tag }} 
+                                {{ form.description }}
+                                {% if form.description.errors %}<div class="invalid-feedback d-block">{{ form.description.errors|join:", " }}</div>{% endif %}
+                                {% if form.description.help_text %}<small class="form-text text-muted">{{ form.description.help_text }}</small>{% endif %}
+                            </div>
+
+                            <!-- Educational Details -->
+                            <div class="col-md-12 mt-4 mb-3">
+                                <h5 class="text-secondary">Educational Details</h5>
+                                <hr class="mt-1 mb-3">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                {{ form.subject.label_tag }} 
+                                {{ form.subject }}
+                                {% if form.subject.errors %}<div class="invalid-feedback d-block">{{ form.subject.errors|join:", " }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                {{ form.grade.label_tag }} 
+                                {{ form.grade }}
+                                {% if form.grade.errors %}<div class="invalid-feedback d-block">{{ form.grade.errors|join:", " }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                {{ form.lesson_date.label_tag }} 
+                                {{ form.lesson_date }}
+                                {% if form.lesson_date.errors %}<div class="invalid-feedback d-block">{{ form.lesson_date.errors|join:", " }}</div>{% endif %}
+                                {% if form.lesson_date.help_text %}<small class="form-text text-muted">{{ form.lesson_date.help_text }}</small>{% endif %}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                {{ form.duration.label_tag }} 
+                                {{ form.duration }}
+                                {% if form.duration.errors %}<div class="invalid-feedback d-block">{{ form.duration.errors|join:", " }}</div>{% endif %}
+                                {% if form.duration.help_text %}<small class="form-text text-muted">{{ form.duration.help_text }}</small>{% endif %}
+                            </div>
+
+                            <!-- Lesson Components -->
+                            <div class="col-md-12 mt-4 mb-3">
+                                <h5 class="text-secondary">Lesson Components</h5>
+                                <hr class="mt-1 mb-3">
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                {{ form.learning_objectives.label_tag }} 
+                                {{ form.learning_objectives }}
+                                {% if form.learning_objectives.errors %}<div class="invalid-feedback d-block">{{ form.learning_objectives.errors|join:", " }}</div>{% endif %}
+                                {% if form.learning_objectives.help_text %}<small class="form-text text-muted">{{ form.learning_objectives.help_text }}</small>{% endif %}
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                {{ form.essential_question.label_tag }} 
+                                {{ form.essential_question }}
+                                {% if form.essential_question.errors %}<div class="invalid-feedback d-block">{{ form.essential_question.errors|join:", " }}</div>{% endif %}
+                                {% if form.essential_question.help_text %}<small class="form-text text-muted">{{ form.essential_question.help_text }}</small>{% endif %}
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                {{ form.materials_needed.label_tag }} 
+                                {{ form.materials_needed }}
+                                {% if form.materials_needed.errors %}<div class="invalid-feedback d-block">{{ form.materials_needed.errors|join:", " }}</div>{% endif %}
+                                {% if form.materials_needed.help_text %}<small class="form-text text-muted">{{ form.materials_needed.help_text }}</small>{% endif %}
+                            </div>
+
+                            <!-- Lesson Structure -->
+                            <div class="col-md-12 mt-4 mb-3">
+                                <h5 class="text-secondary">Lesson Structure</h5>
+                                <hr class="mt-1 mb-3">
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                {{ form.opening_activity.label_tag }} 
+                                {{ form.opening_activity }}
+                                {% if form.opening_activity.errors %}<div class="invalid-feedback d-block">{{ form.opening_activity.errors|join:", " }}</div>{% endif %}
+                                {% if form.opening_activity.help_text %}<small class="form-text text-muted">{{ form.opening_activity.help_text }}</small>{% endif %}
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                {{ form.main_instruction.label_tag }} 
+                                {{ form.main_instruction }}
+                                {% if form.main_instruction.errors %}<div class="invalid-feedback d-block">{{ form.main_instruction.errors|join:", " }}</div>{% endif %}
+                                {% if form.main_instruction.help_text %}<small class="form-text text-muted">{{ form.main_instruction.help_text }}</small>{% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.guided_practice.label_tag }} 
+                                {{ form.guided_practice }}
+                                {% if form.guided_practice.errors %}<div class="invalid-feedback d-block">{{ form.guided_practice.errors|join:", " }}</div>{% endif %}
+                                {% if form.guided_practice.help_text %}<small class="form-text text-muted">{{ form.guided_practice.help_text }}</small>{% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.independent_practice.label_tag }} 
+                                {{ form.independent_practice }}
+                                {% if form.independent_practice.errors %}<div class="invalid-feedback d-block">{{ form.independent_practice.errors|join:", " }}</div>{% endif %}
+                                {% if form.independent_practice.help_text %}<small class="form-text text-muted">{{ form.independent_practice.help_text }}</small>{% endif %}
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                {{ form.closing_activity.label_tag }} 
+                                {{ form.closing_activity }}
+                                {% if form.closing_activity.errors %}<div class="invalid-feedback d-block">{{ form.closing_activity.errors|join:", " }}</div>{% endif %}
+                                {% if form.closing_activity.help_text %}<small class="form-text text-muted">{{ form.closing_activity.help_text }}</small>{% endif %}
+                            </div>
+
+                            <!-- Assessment & Differentiation -->
+                            <div class="col-md-12 mt-4 mb-3">
+                                <h5 class="text-secondary">Assessment & Differentiation</h5>
+                                <hr class="mt-1 mb-3">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.formative_assessment.label_tag }} 
+                                {{ form.formative_assessment }}
+                                {% if form.formative_assessment.errors %}<div class="invalid-feedback d-block">{{ form.formative_assessment.errors|join:", " }}</div>{% endif %}
+                                {% if form.formative_assessment.help_text %}<small class="form-text text-muted">{{ form.formative_assessment.help_text }}</small>{% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.summative_assessment.label_tag }} 
+                                {{ form.summative_assessment }}
+                                {% if form.summative_assessment.errors %}<div class="invalid-feedback d-block">{{ form.summative_assessment.errors|join:", " }}</div>{% endif %}
+                                {% if form.summative_assessment.help_text %}<small class="form-text text-muted">{{ form.summative_assessment.help_text }}</small>{% endif %}
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                {{ form.differentiation_strategies.label_tag }} 
+                                {{ form.differentiation_strategies }}
+                                {% if form.differentiation_strategies.errors %}<div class="invalid-feedback d-block">{{ form.differentiation_strategies.errors|join:", " }}</div>{% endif %}
+                                {% if form.differentiation_strategies.help_text %}<small class="form-text text-muted">{{ form.differentiation_strategies.help_text }}</small>{% endif %}
+                            </div>
+
+                            <!-- Additional Fields -->
+                            <div class="col-md-12 mt-4 mb-3">
+                                <h5 class="text-secondary">Additional Information</h5>
+                                <hr class="mt-1 mb-3">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.homework_assignment.label_tag }} 
+                                {{ form.homework_assignment }}
+                                {% if form.homework_assignment.errors %}<div class="invalid-feedback d-block">{{ form.homework_assignment.errors|join:", " }}</div>{% endif %}
+                                {% if form.homework_assignment.help_text %}<small class="form-text text-muted">{{ form.homework_assignment.help_text }}</small>{% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.extension_activities.label_tag }} 
+                                {{ form.extension_activities }}
+                                {% if form.extension_activities.errors %}<div class="invalid-feedback d-block">{{ form.extension_activities.errors|join:", " }}</div>{% endif %}
+                                {% if form.extension_activities.help_text %}<small class="form-text text-muted">{{ form.extension_activities.help_text }}</small>{% endif %}
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                {{ form.reflection_notes.label_tag }} 
+                                {{ form.reflection_notes }}
+                                {% if form.reflection_notes.errors %}<div class="invalid-feedback d-block">{{ form.reflection_notes.errors|join:", " }}</div>{% endif %}
+                                {% if form.reflection_notes.help_text %}<small class="form-text text-muted">{{ form.reflection_notes.help_text }}</small>{% endif %}
+                            </div>
+
+                            <!-- Standards Alignment -->
+                            <div class="col-md-12 mt-4 mb-3">
+                                <h5 class="text-secondary">Standards Alignment</h5>
+                                <hr class="mt-1 mb-3">
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                {{ form.standards.label_tag }} 
+                                {{ form.standards }}
+                                {% if form.standards.errors %}<div class="invalid-feedback d-block">{{ form.standards.errors|join:", " }}</div>{% endif %}
+                                {% if form.standards.help_text %}<small class="form-text text-muted">{{ form.standards.help_text }}</small>{% endif %}
+                                <small class="form-text text-muted">Hold down "Control" (or "Command" on Mac) to select multiple standards.</small>
+                            </div>
+
+                            <!-- Metadata -->
+                            <div class="col-md-12 mt-4 mb-3">
+                                <h5 class="text-secondary">Settings</h5>
+                                <hr class="mt-1 mb-3">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check form-switch ps-0">
+                                    {{ form.is_public.label_tag }} 
+                                    {{ form.is_public }}
+                                    {% if form.is_public.errors %}<div class="invalid-feedback d-block">{{ form.is_public.errors|join:", " }}</div>{% endif %}
+                                    {% if form.is_public.help_text %}<small class="form-text text-muted d-block">{{ form.is_public.help_text }}</small>{% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check form-switch ps-0">
+                                    {{ form.is_template.label_tag }} 
+                                    {{ form.is_template }}
+                                    {% if form.is_template.errors %}<div class="invalid-feedback d-block">{{ form.is_template.errors|join:", " }}</div>{% endif %}
+                                    {% if form.is_template.help_text %}<small class="form-text text-muted d-block">{{ form.is_template.help_text }}</small>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 d-flex justify-content-end">
+                            <a href="{% if form.instance.pk %}{% url 'home:lesson_detail' form.instance.pk %}{% else %}{% url 'home:mylessonplans' %}{% endif %}" class="btn btn-secondary me-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                {% if form.instance.pk %}Save Changes{% else %}Create Lesson Plan{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+{{ super }}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Add 'form-control' class to all text inputs, textareas, and select elements
+    const formElements = document.querySelectorAll(
+        'form input[type="text"], 
+        form input[type="email"], 
+        form input[type="url"], 
+        form input[type="password"], 
+        form input[type="number"], 
+        form input[type="date"], 
+        form input[type="time"], 
+        form textarea, 
+        form select'
+    );
+    formElements.forEach(el => {
+        if (!el.classList.contains('form-control') && !el.classList.contains('form-select')) {
+            el.classList.add('form-control');
+        }
+        // For select multiple, Bootstrap 5 uses form-select class
+        if (el.tagName === 'SELECT' && el.multiple) {
+            el.classList.remove('form-control');
+            el.classList.add('form-select');
+        }
+    });
+
+    // Add 'form-check-input' to checkbox and radio if not already present
+    const checkRadioElements = document.querySelectorAll('form input[type="checkbox"], form input[type="radio"]');
+    checkRadioElements.forEach(el => {
+        if (!el.classList.contains('form-check-input')) {
+            el.classList.add('form-check-input');
+        }
+    });
+
+    // Ensure labels for checkboxes and radios have 'form-check-label'
+    // This is a bit more complex as Django renders label tags separately
+    // This script assumes a common structure or you might need to adjust based on your form rendering
+    document.querySelectorAll('form .form-check').forEach(formCheckDiv => {
+        const label = formCheckDiv.querySelector('label');
+        if (label && !label.classList.contains('form-check-label')) {
+            // label.classList.add('form-check-label'); // This might conflict with Material Kit styling for switches
+        }
+    });
+
+    // Specific styling for is_public and is_template switches if they are checkboxes
+    ['id_is_public', 'id_is_template'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && el.type === 'checkbox') {
+            // Material Kit might handle switch styling automatically if classes are set correctly in forms.py
+            // Ensure the parent div has 'form-check form-switch'
+            if (el.parentElement.classList.contains('form-check') && !el.parentElement.classList.contains('form-switch')){
+                // el.parentElement.classList.add('form-switch'); // This might be needed if not set by Django widget
+            }
+        }
+    });
+
+  });
+</script>
+{% endblock javascripts %}

@@ -1,45 +1,206 @@
 {% extends 'layouts/base_background.html' %}
 {% load static %}
 
-
 {% block body %} class="index-page bg-gray-200" {% endblock body %}
 
 {% block content %}
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>My Lesson Plans</h2>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'home:createnewlesson' %}" class="btn btn-primary">
+                <i class="material-icons opacity-10">add</i> Create New Lesson Plan
+            </a>
+        </div>
+    </div>
 
-</div></div></div>
-<section>
-<div class="container text-center gx-8 pt-2 pb-2">
-  <div class="row">
-    <div class="col-md">
-      <h3>Recents</h3>
+    <!-- Search Form -->
+    <div class="card mb-4">
+        <div class="card-header p-3">
+            <h5 class="mb-0"><i class="material-icons opacity-10">search</i> Search Lesson Plans</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" action="{% url 'home:mylessonplans' %}">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        {{ search_form.title.label_tag }}
+                        {{ search_form.title }}
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        {{ search_form.subject.label_tag }}
+                        {{ search_form.subject }}
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        {{ search_form.grade.label_tag }}
+                        {{ search_form.grade }}
+                    </div>
+                    <div class="col-md-2 mb-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-info w-100">Search</button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
-    <div class="col-md">
-      <h3>Upcoming</h3>
+
+    {% if lesson_plans %}
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table align-items-center mb-0">
+                    <thead>
+                        <tr>
+                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Title</th>
+                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Subject</th>
+                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Grade</th>
+                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Last Updated</th>
+                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for lesson in lesson_plans %}
+                        <tr>
+                            <td>
+                                <div class="d-flex px-2 py-1">
+                                    <div class="d-flex flex-column justify-content-center">
+                                        <h6 class="mb-0 text-xs">
+                                            <a href="{% url 'home:lesson_detail' lesson.pk %}">{{ lesson.title }}</a>
+                                        </h6>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <p class="text-xs font-weight-bold mb-0">{{ lesson.subject.name }}</p>
+                            </td>
+                            <td>
+                                <p class="text-xs font-weight-bold mb-0">{{ lesson.grade.level }}</p>
+                            </td>
+                            <td class="align-middle text-center">
+                                <span class="text-secondary text-xs font-weight-normal">{{ lesson.updated_at|date:"Y-m-d P" }}</span>
+                            </td>
+                            <td class="align-middle text-center">
+                                <a href="{% url 'home:lesson_detail' lesson.pk %}" class="btn btn-link text-info px-2 mb-0">
+                                    <i class="material-icons opacity-10">visibility</i> View
+                                </a>
+                                <a href="{% url 'home:edit_lesson' lesson.pk %}" class="btn btn-link text-dark px-2 mb-0">
+                                    <i class="material-icons opacity-10">edit</i> Edit
+                                </a>
+                                <a href="{% url 'home:delete_lesson' lesson.pk %}" class="btn btn-link text-danger px-2 mb-0">
+                                    <i class="material-icons opacity-10">delete</i> Delete
+                                </a>
+                                <a href="{% url 'home:duplicate_lesson' lesson.pk %}" class="btn btn-link text-secondary px-2 mb-0">
+                                    <i class="material-icons opacity-10">content_copy</i> Duplicate
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">&laquo;</a>
+                    </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active" aria-current="page"><a class="page-link" href="#">{{ num }}</a></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item"><a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a></li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">&raquo;</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+    {% else %}
+        <div class="card">
+            <div class="card-body text-center">
+                <p class="lead">No lesson plans found. <a href="{% url 'home:createnewlesson' %}">Create your first lesson plan!</a></p>
+                {% if request.GET.title or request.GET.subject or request.GET.grade %}
+                    <p>Try adjusting your search filters.</p>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Calendar Section - Kept for future integration -->
+    <div class="row mt-5">
+        <div class="col">
+            <div class="card">
+                <div class="card-header p-3">
+                    <h5 class="mb-0"><i class="material-icons opacity-10">calendar_today</i> Lesson Schedule</h5>
+                </div>
+                <div class="card-body">
+                    <div id="calendar"></div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="col">
-    <h3>Search</h3>
-    <input type="text" placeholder="Search for a lesson plan">
-    <button type="button" onclick="submit()">Search</button>
-  </div>
 </div>
-<div class="container text-center pt-4 pb2">
-    <div class="row">
-      <div class="col">
-        <h3>Calendar</h3>
-        <div id="calendar"></div>
-        <script>
-          document.addEventListener('DOMContentLoaded', function() {
-            var calendarEl = document.getElementById('calendar');
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-              initialView: 'dayGridMonth'
-            });
-            calendar.render();
-          });
-        </script>
-          <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 
-  </div>
-      </div>
-  </div>
-</section>
-{% endblock %}
+{% endblock content %}
+
+{% block javascripts %}
+{{ super }}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+      // TODO: Add event sources for lesson schedules
+      // events: [
+      //   {% for schedule in lesson_schedules %}
+      //   {
+      //     title: '{{ schedule.lesson_plan.title_safe }}', // Ensure title is safe
+      //     start: '{{ schedule.scheduled_date_iso }}T{{ schedule.start_time_iso|default:"" }}',
+      //     end: '{{ schedule.scheduled_date_iso }}T{{ schedule.end_time_iso|default:"" }}',
+      //     url: '{% url 'home:lesson_detail' schedule.lesson_plan.pk %}'
+      //   },
+      //   {% endfor %}
+      // ]
+    });
+    calendar.render();
+
+    // Style the search form select widgets if they are rendered by Django forms
+    const formSelects = document.querySelectorAll('form select');
+    formSelects.forEach(select => {
+        if (!select.classList.contains('form-select')) {
+            select.classList.add('form-control'); // Or 'form-select' if you prefer Bootstrap's default select styling
+        }
+    });
+    const formInputs = document.querySelectorAll('form input[type="text"], form input[type="date"], form input[type="number"], form textarea');
+    formInputs.forEach(input => {
+        if (!input.classList.contains('form-control')) {
+            input.classList.add('form-control');
+        }
+    });
+  });
+</script>
+{% endblock javascripts %}

@@ -4,153 +4,154 @@
 {% block body %} class="index-page bg-gray-200" {% endblock body %}
 
 {% block content %}
+<div class="container py-5">
+    {% if user.is_authenticated %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="text-center">Welcome back, {{ user.first_name|default:user.username }}!</h2>
+            <p class="text-center text-muted">Here's a quick overview of your lesson planning activity.</p>
+        </div>
+    </div>
 
-</div></div></div>
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-9 mx-auto py-3">
-        <div class="row">
-          <div class="col-md-3 position-relative">
-            <div class="p-3 text-center">
-              <h5 class="mt-3">Recent</h5>
-              </div>
-            <hr class="vertical dark">
-          </div>
-          <div class="col-md-3 position-relative">
-            <div class="p-3 text-center">
-              <h5 class="mt-3">Upcoming</h5>
-              <p class="text-sm font-weight-normal"></p>
-            </div>
-            <hr class="vertical dark">
-          </div>
-          <div class="col-md-6">
-            <div class="p-3 text-center">
-              <h4 class="mt-3">Calendar</h4>
-                    <div id="calendar"></div>
-                      <script>
-                        document.addEventListener('DOMContentLoaded', function() {
-                          var calendarEl = document.getElementById('calendar');
-                          var calendar = new FullCalendar.Calendar(calendarEl, {
-                            initialView: 'dayGridMonth'
-                          });
-                          calendar.render();
-                        });
-                      </script>
-                        <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
-
+    <!-- Statistics Section -->
+    <section class="pt-3 pb-4" id="count-stats">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-4 mb-4">
+                    <div class="card card-body text-center shadow-lg">
+                        <h1 class="text-gradient text-primary"><span id="state1" countTo="{{ total_lessons|default:0 }}">{{ total_lessons|default:0 }}</span></h1>
+                        <h5 class="mt-3">Total Lesson Plans</h5>
+                        <p class="text-sm font-weight-normal">All the lesson plans you've created.</p>
+                    </div>
                 </div>
-              <p class="text-sm font-weight-normal"></p>
+                <div class="col-md-4 mb-4">
+                    <div class="card card-body text-center shadow-lg">
+                        <h1 class="text-gradient text-info"><span id="state2" countTo="{{ total_materials|default:0 }}">{{ total_materials|default:0 }}</span></h1>
+                        <h5 class="mt-3">Total Materials</h5>
+                        <p class="text-sm font-weight-normal">Your collection of teaching materials.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card card-body text-center shadow-lg">
+                        <h1 class="text-gradient text-success"><span id="state3" countTo="{{ total_resources|default:0 }}">{{ total_resources|default:0 }}</span></h1>
+                        <h5 class="mt-3">Total Resources</h5>
+                        <p class="text-sm font-weight-normal">Your curated list of external resources.</p>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
-    </div>
-  </div>
-</section>
-<section class="pt-3 pb-4" id="count-stats">
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-9 mx-auto py-3">
-        <div class="row">
-          <div class="col-md-4 position-relative">
-            <div class="p-3 text-center">
+    </section>
 
-
-                          </div>
-
+    <div class="row mt-4">
+        <!-- Recent Lesson Plans Section -->
+        <div class="col-lg-7 mb-4">
+            <div class="card shadow-lg">
+                <div class="card-header p-3">
+                    <h5 class="mb-0"><i class="material-icons opacity-10 me-2">history</i>Recent Lesson Plans</h5>
+                </div>
+                <div class="card-body p-3">
+                    {% if recent_lessons %}
+                        <ul class="list-group list-group-flush">
+                            {% for lesson in recent_lessons %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <a href="{% url 'home:lesson_detail' lesson.pk %}">{{ lesson.title }}</a>
+                                <span class="badge bg-gradient-primary rounded-pill">{{ lesson.updated_at|date:"M d, Y" }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'home:mylessonplans' %}" class="btn btn-sm btn-outline-primary">View All Lesson Plans</a>
+                        </div>
+                    {% else %}
+                        <p class="text-center text-muted">You haven't created any lesson plans yet.</p>
+                        <div class="text-center">
+                            <a href="{% url 'home:createnewlesson' %}" class="btn btn-sm btn-primary">Create Your First Lesson Plan</a>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
-          </div>
         </div>
-      </div>
+
+        <!-- Calendar Section -->
+        <div class="col-lg-5 mb-4">
+            <div class="card shadow-lg">
+                <div class="card-header p-3">
+                    <h5 class="mb-0"><i class="material-icons opacity-10 me-2">calendar_today</i>Lesson Schedule</h5>
+                </div>
+                <div class="card-body p-3">
+                    <div id="calendar"></div>
+                    <p class="text-center text-muted mt-2"><small>Upcoming lessons will appear here.</small></p>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</section>
-  <div class="container mt-sm-5 mt-3">
-    <div class="row">
-      <div class="col-lg-3">
-        <div class="position-sticky pb-lg-5 pb-3 mt-lg-0 mt-5 ps-2" style="top: 100px">
-        </div>
-      </div>
-    <div class="row pt-lg-6">
-      <div class="col-lg-3">
-        <div class="position-sticky pb-lg-5 pb-3 mt-lg-0 mt-5 ps-2" style="top: 100px">
-          <h3></h3>
-          <h6 class="text-secondary font-weight-normal pe-3"></h6>
-        </div>
-      </div>
-      <div class="col-lg-9">
-        <div class="row mt-3">
 
-
-<!-- -------   START PRE-FOOTER 2 - simple social line w/ title & 3 buttons    -------- -->
-<div class="py-5">
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-5 ms-auto">
-      </div>
-      <div class="col-lg-5 me-lg-auto my-lg-auto text-lg-end mt-5">
-        <a href="https://twitter.com/intent/tweet?text=Check%20Material%20UI%20Kit%20made%20by%20%40CreativeTim%20%23webdesign%20%23designsystem%20%23bootstrap5&url=https%3A%2F%2Fwww.creative-tim.com%2Fproduct%2Fmaterial-kit" class="btn btn-twitter mb-0 me-2" target="_blank">
-          <i class="fab fa-twitter me-1"></i> Tweet
-        </a>
-        <a href="https://www.facebook.com/sharer/sharer.php?u=https://appseed.us/product/material-kit/django/" class="btn btn-facebook mb-0 me-2" target="_blank">
-          <i class="fab fa-facebook-square me-1"></i> Share
-        </a>
-        <a href="https://www.pinterest.com/pin/create/button/?url=https://appseed.us/product/material-kit/django/" class="btn btn-pinterest mb-0 me-2" target="_blank">
-          <i class="fab fa-pinterest me-1"></i> Pin it
-        </a>
-      </div>
+    {% else %}
+    {# Content for non-authenticated users - redirect to welcome or show limited info #}
+    <div class="row justify-content-center">
+        <div class="col-lg-8 text-center">
+            <h1 class="display-4">Welcome to Your Lesson Planner</h1>
+            <p class="lead">Organize your teaching, create engaging lesson plans, and manage your educational resources all in one place.</p>
+            <hr class="my-4">
+            <p>Please <a href="{% url 'home:login' %}">log in</a> to access your dashboard or <a href="{% url 'home:signup' %}">sign up</a> to get started.</p>
+            <a class="btn btn-primary btn-lg mt-3" href="{% url 'home:signup' %}" role="button">Get Started</a>
+        </div>
     </div>
-  </div>
-</div>
-<!-- -------   END PRE-FOOTER 2 - simple social line w/ title & 3 buttons    -------- -->
-
+    {% endif %}
 </div>
 
 {% endblock content %}
 
 {% block javascripts %}
-
-<!--  Plugin for TypedJS, full documentation here: https://github.com/inorganik/CountUp.js -->
+{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 <script src="{% static 'js/plugins/countup.min.js' %}"></script>
-<script src="{% static 'js/plugins/choices.min.js' %}"></script>
-<script src="{% static 'js/plugins/prism.min.js' %}"></script>
-<script src="{% static 'js/plugins/highlight.min.js' %}"></script>
-<!--  Plugin for Parallax, full documentation here: https://github.com/dixonandmoe/rellax -->
-<script src="{% static 'js/plugins/rellax.min.js' %}"></script>
-<!--  Plugin for TiltJS, full documentation here: https://gijsroge.github.io/tilt.js/ -->
-<script src="{% static 'js/plugins/tilt.min.js' %}"></script>
-<!--  Plugin for Selectpicker - ChoicesJS, full documentation here: https://github.com/jshjohnson/Choices -->
-<script src="{% static 'js/plugins/choices.min.js' %}"></script>
-
 
 <script type="text/javascript">
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize CountUp for statistics
+    if (document.getElementById('state1') && typeof CountUp !== 'undefined') {
+      const countUp = new CountUp('state1', document.getElementById("state1").getAttribute("countTo"));
+      if (!countUp.error) {
+        countUp.start();
+      } else {
+        console.error(countUp.error);
+      }
+    }
+    if (document.getElementById('state2') && typeof CountUp !== 'undefined') {
+      const countUp1 = new CountUp('state2', document.getElementById("state2").getAttribute("countTo"));
+      if (!countUp1.error) {
+        countUp1.start();
+      } else {
+        console.error(countUp1.error);
+      }
+    }
+    if (document.getElementById('state3') && typeof CountUp !== 'undefined') {
+      const countUp2 = new CountUp('state3', document.getElementById("state3").getAttribute("countTo"));
+      if (!countUp2.error) {
+        countUp2.start();
+      } else {
+        console.error(countUp2.error);
+      }
+    }
 
-  if (document.getElementById('state1')) {
-    const countUp = new CountUp('state1', document.getElementById("state1").getAttribute("countTo"));
-    if (!countUp.error) {
-      countUp.start();
-    } else {
-      console.error(countUp.error);
+    // Initialize FullCalendar
+    var calendarEl = document.getElementById('calendar');
+    if (calendarEl && typeof FullCalendar !== 'undefined') {
+      var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek'
+        },
+        // TODO: Add event sources for lesson schedules from context if available
+        // events: [] 
+      });
+      calendar.render();
     }
-  }
-  if (document.getElementById('state2')) {
-    const countUp1 = new CountUp('state2', document.getElementById("state2").getAttribute("countTo"));
-    if (!countUp1.error) {
-      countUp1.start();
-    } else {
-      console.error(countUp1.error);
-    }
-  }
-  if (document.getElementById('state3')) {
-    const countUp2 = new CountUp('state3', document.getElementById("state3").getAttribute("countTo"));
-    if (!countUp2.error) {
-      countUp2.start();
-    } else {
-      console.error(countUp2.error);
-    };
-  }
+  });
 </script>
-
 {% endblock javascripts %}
 
 

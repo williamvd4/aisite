@@ -1,0 +1,140 @@
+{% extends 'layouts/base_background.html' %}
+{% load static %}
+
+{% block title %} Sign UP {% endblock title %}
+
+{% block body %} class="sign-up-cover" {% endblock body %}
+
+{% block content %}
+
+  {% include 'includes/navigation.html' %}
+
+  <header>
+    <div class="page-header min-vh-100">
+      <div class="container">
+        <div class="row">
+          <div class="col-xl-4 col-lg-5 col-md-7 d-flex flex-column mx-lg-0 mx-auto">
+            <div class="card card-plain">
+              <div class="card-header pb-0 text-left">
+                <h4 class="font-weight-bolder">Sign Up</h4>
+                <p class="mb-0">
+                    {% if msg %}
+                        {{ msg | safe }}
+                    {% elif form.errors %}
+                        <div class="alert alert-danger">
+                            Please correct the errors below.
+                        </div>
+                    {% else %}
+                        Add your credentials
+                    {% endif %}
+                </p>
+              </div>
+              <div class="card-body">
+                <form role="form" method="post" action="{% url 'home:signup' %}" class="text-start">
+                  {% csrf_token %}
+                  
+                  <div class="input-group input-group-outline mb-3 {% if form.username.errors %}is-invalid{% endif %}">
+                    <label class="form-label" for="{{ form.username.id_for_label }}">Username</label>
+                    {{ form.username }}
+                  </div>
+                  {% if form.username.errors %}
+                    <div class="invalid-feedback d-block">
+                      {% for error in form.username.errors %}
+                        {{ error }}
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+
+                  <div class="input-group input-group-outline mb-3 {% if form.first_name.errors %}is-invalid{% endif %}">
+                    <label class="form-label" for="{{ form.first_name.id_for_label }}">First Name</label>
+                    {{ form.first_name }}
+                  </div>
+                  {% if form.first_name.errors %}
+                    <div class="invalid-feedback d-block">
+                      {% for error in form.first_name.errors %}
+                        {{ error }}
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+
+                  <div class="input-group input-group-outline mb-3 {% if form.last_name.errors %}is-invalid{% endif %}">
+                    <label class="form-label" for="{{ form.last_name.id_for_label }}">Last Name</label>
+                    {{ form.last_name }}
+                  </div>
+                  {% if form.last_name.errors %}
+                    <div class="invalid-feedback d-block">
+                      {% for error in form.last_name.errors %}
+                        {{ error }}
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+
+                  <div class="input-group input-group-outline mb-3 {% if form.email.errors %}is-invalid{% endif %}">
+                    <label class="form-label" for="{{ form.email.id_for_label }}">Email</label>
+                    {{ form.email }}
+                  </div>
+                  {% if form.email.errors %}
+                    <div class="invalid-feedback d-block">
+                      {% for error in form.email.errors %}
+                        {{ error }}
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+
+                  <div class="input-group input-group-outline mb-3 {% if form.password1.errors %}is-invalid{% endif %}">
+                    <label class="form-label" for="{{ form.password1.id_for_label }}">Password</label>
+                    {{ form.password1 }}
+                  </div>
+                  {% if form.password1.errors %}
+                    <div class="invalid-feedback d-block">
+                      {% for error in form.password1.errors %}
+                        {{ error }}
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+
+                  <div class="input-group input-group-outline mb-3 {% if form.password2.errors %}is-invalid{% endif %}">
+                    <label class="form-label" for="{{ form.password2.id_for_label }}">Confirm Password</label>
+                    {{ form.password2 }}
+                  </div>
+                  {% if form.password2.errors %}
+                    <div class="invalid-feedback d-block">
+                      {% for error in form.password2.errors %}
+                        {{ error }}
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                  
+                  {{ form.non_field_errors }}
+
+                  <div class="form-check form-check-info text-start ps-0">
+                    <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked>
+                    <label class="form-check-label" for="flexCheckDefault">
+                      I agree the <a href="javascript:;" class="text-dark font-weight-bolder">Terms and Conditions</a>
+                    </label>
+                  </div>
+                  <div class="text-center">
+                    <button type="submit" name="register" class="btn btn-lg bg-gradient-primary btn-lg w-100 mt-4 mb-0">Sign Up</button>
+                  </div>
+                </form>
+              </div>
+              <div class="card-footer text-center pt-0 px-lg-2 px-1">
+                <p class="mb-2 text-sm mx-auto">
+                  Already have an account?
+                  <a href="{% url 'home:login' %}" class="text-primary text-gradient font-weight-bold">Sign in</a>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div
+            class="col-6 d-lg-flex d-none h-100 my-auto pe-0 position-absolute top-0 end-0 text-center justify-content-center flex-column">
+            <div class="position-relative bg-gradient-primary h-100 m-3 px-7 border-radius-lg d-flex flex-column justify-content-center"
+              style="background-image: url('{% static 'img/background.jpg' %}'); background-size: cover;">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+{% endblock content %}

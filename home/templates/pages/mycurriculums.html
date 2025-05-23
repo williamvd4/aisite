@@ -36,7 +36,7 @@
 
   <div class="row mt-3">
     <div class="col-md-6 mx-auto">
-      <form id="uploadForm" action="{% url 'upload_curriculum' %}" method="POST" enctype="multipart/form-data" style="display: none;">
+      <form id="uploadForm" action="{% url 'home:upload_curriculum' %}" method="POST" enctype="multipart/form-data" style="display: none;">
         {% csrf_token %}
         <div class="input-group mb-3">
           <input type="file" class="form-control" name="file" id="curriculumFile">
@@ -74,7 +74,7 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
   
   const formData = new FormData(this);
   
-  fetch('{% url "upload_curriculum" %}', {
+  fetch('{% url "home:upload_curriculum" %}', {
     method: 'POST',
     body: formData,
     headers: {

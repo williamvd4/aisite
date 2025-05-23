@@ -37,7 +37,7 @@
           </div>
           <div class="card-body">
           </div>
-          <form role="form" method="post" action="{% url 'home' %}" class="text-start">
+          <form role="form" method="post" action="{% url 'home:login' %}" class="text-start">
             {% csrf_token %}
             <div class="input-group input-group-outline my-3">
               <label class="form-label">Username</label>
@@ -55,7 +55,7 @@
               <button type="submit" class="btn bg-gradient-primary w-100 my-4 mb-2">Sign in</button>
             </div>
             <p class="mt-4 text-sm text-center">
-              Don't have an account? <a href="{% url 'register' %}" class="text-primary">Sign UP</a>
+              Don't have an account? <a href="{% url 'home:signup' %}" class="text-primary">Sign UP</a>
             </p>
           </form>
 
@@ -65,7 +65,7 @@
   </div>
 </div>
 <nav>
- <a class="nav-link nav-link-icon me-2" href="{% url 'home' %}"  href='.'>Home </a>
+ <a class="nav-link nav-link-icon me-2" href="{% url 'home:home' %}"  href='.'>Home </a>
 </nav>
 
 {% endblock %}

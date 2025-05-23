@@ -1,0 +1,47 @@
+{% extends 'layouts/base_background.html' %}
+{% load static %}
+
+{% block title %}Confirm Delete: {{ lesson_plan.title }}{% endblock title %}
+
+{% block body %} class="index-page bg-gray-200" {% endblock body %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card">
+                <div class="card-header p-3 bg-danger text-white">
+                    <h4 class="mb-0 text-white">
+                        <i class="material-icons opacity-10 me-2">delete_forever</i> Confirm Deletion
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Are you sure you want to delete the lesson plan titled "<strong>{{ lesson_plan.title }}</strong>"?</p>
+                    <p>This action cannot be undone. All associated data for this lesson plan will be permanently removed.</p>
+                    
+                    <div class="alert alert-warning mt-3" role="alert">
+                        <strong>Details of the lesson plan to be deleted:</strong>
+                        <ul>
+                            <li><strong>Subject:</strong> {{ lesson_plan.subject.name }}</li>
+                            <li><strong>Grade:</strong> {{ lesson_plan.grade.level }}</li>
+                            <li><strong>Last Updated:</strong> {{ lesson_plan.updated_at|date:"F d, Y P" }}</li>
+                        </ul>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mt-4 d-flex justify-content-end">
+                            <a href="{% url 'home:lesson_detail' lesson_plan.pk %}" class="btn btn-secondary me-2">
+                                <i class="material-icons opacity-10">cancel</i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="material-icons opacity-10">delete</i> Yes, Delete Permanently
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

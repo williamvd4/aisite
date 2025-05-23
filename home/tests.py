@@ -1,17 +1,16 @@
-from django.test import RequestFactory, TestCase
-from myapp.views import HomePageView
+from django.test import TestCase
+from django.contrib.auth.models import User
+from .models import Lesson
 
-class HomePageViewTest(TestCase):
+class LessonModelTest(TestCase):
     def setUp(self):
-        self.factory = RequestFactory()
+        self.user = User.objects.create_user(username='testuser', password='testpass123')
 
-    def test_home_page_status_code(self):
-        request = self.factory.get('/')
-        response = HomePageView.as_view()(request)
-        self.assertEqual(response.status_code, 200)
-
-    def test_home_page_content(self):
-        request = self.factory.get('/')
-        response = HomePageView.as_view()(request)
-        self.assertContains(response, "Welcome to my website!")
-
+    def test_lesson_creation(self):
+        lesson = Lesson.objects.create(
+            title="Test Lesson",
+            description="A test description.",
+            user=self.user
+        )
+        self.assertEqual(lesson.title, "Test Lesson")
+        self.assertEqual(lesson.user.username, "testuser")
