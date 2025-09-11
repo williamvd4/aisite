@@ -52,7 +52,7 @@ def home(request):
 
 
 def welcome(request):
-    return render(request, "pages/welcome.html")
+    return render(request, 'pages/welcome.html')
 
 
 @login_required

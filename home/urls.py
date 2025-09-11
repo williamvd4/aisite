@@ -6,8 +6,8 @@ app_name = 'home'  # Added this line
 
 urlpatterns = [
     # Main pages
-    path('', views.home, name='home'),
-    path('welcome/', views.welcome, name='welcome'),
+    path('home/', views.home, name='home'), # Changed this line
+    # path('welcome/', views.welcome, name='welcome'), # Comment out or remove this line
     
     # Lesson Plan CRUD
     path('mylessonplans/', views.mylessonplans, name='mylessonplans'),
