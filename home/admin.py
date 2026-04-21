@@ -1,6 +1,6 @@
 # Import the necessary modules
 from django.contrib import admin
-from .models import (MyFormModel, Lesson, Curriculum, Resource, Material, 
+from .models import (Curriculum, Resource, Material,
                     LessonPlan, Subject, Grade, Standard, LessonSchedule)
 
 
@@ -88,8 +88,4 @@ class LessonScheduleAdmin(admin.ModelAdmin):
     search_fields = ('lesson_plan__title', 'class_period', 'classroom')
     date_hierarchy = 'scheduled_date'
 
-
-# Legacy models
-admin.site.register(MyFormModel)
-admin.site.register(Lesson)
 
