@@ -20,7 +20,11 @@ urlpatterns = [
     # Resources and Materials
     path('myresources/', views.myresources, name='myresources'),
     path('create-material/', views.create_material, name='create_material'),
+    path('material/<int:pk>/edit/', views.edit_material, name='edit_material'),
+    path('material/<int:pk>/delete/', views.delete_material, name='delete_material'),
     path('create-resource/', views.create_resource, name='create_resource'),
+    path('resource/<int:pk>/edit/', views.edit_resource, name='edit_resource'),
+    path('resource/<int:pk>/delete/', views.delete_resource, name='delete_resource'),
 
     # Calendar and Curriculum
     path('mycurriculums/', views.mycurriculums, name='mycurriculums'),

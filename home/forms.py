@@ -165,6 +165,20 @@ class LessonSearchForm(forms.Form):
     )
 
 
+class CurriculumForm(forms.ModelForm):
+    """Form for uploading curriculum documents."""
+
+    class Meta:
+        model = Curriculum
+        fields = ['title', 'description', 'subject', 'grade']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'subject': forms.Select(attrs={'class': 'form-control'}),
+            'grade': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+
 class UserProfileForm(UserChangeForm):
     password = None  # Remove password field
     class Meta:
