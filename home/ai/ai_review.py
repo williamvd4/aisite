@@ -59,16 +59,9 @@ def generate_ai_response(prompt: str, request_type: str = 'general_chat',
 
     api_key = getattr(settings, "NVIDIA_API_KEY", None)
     if not api_key:
-<<<<<<< HEAD
         return "Error: NVIDIA_API_KEY not configured. Please set it in your .env file."
     base_url = getattr(settings, "BASE_URL", "https://integrate.api.nvidia.com/v1")
     model = getattr(settings, "NVIDIA_MODEL", "meta/llama-3.1-8b-instruct")
-=======
-        return (
-            "AI features are not configured. "
-            "Please contact your administrator to set up the NVIDIA API key."
-        )
->>>>>>> a813987821fac5c1f14567053f01b3a03b997bb5
 
     client = OpenAI(
         base_url=base_url,
@@ -82,7 +75,7 @@ def generate_ai_response(prompt: str, request_type: str = 'general_chat',
     for attempt in range(2):
         try:
             response = client.chat.completions.create(
-                model="meta/llama-3.1-8b-instruct",
+                model=model,
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=2048,
                 temperature=0.7,
@@ -110,13 +103,6 @@ def generate_ai_response(prompt: str, request_type: str = 'general_chat',
 
     # Best-effort logging – never crash if the log write fails
     try:
-<<<<<<< HEAD
-        response = client.chat.completions.create(
-            model=model,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=2048,
-            temperature=0.7,
-=======
         AIUsageLog.objects.create(
             user=user,
             request_type=request_type,
@@ -126,7 +112,6 @@ def generate_ai_response(prompt: str, request_type: str = 'general_chat',
             latency_ms=latency_ms,
             success=success,
             failure_reason=last_error,
->>>>>>> a813987821fac5c1f14567053f01b3a03b997bb5
         )
     except Exception:  # noqa: BLE001
         pass

@@ -406,7 +406,7 @@ def signup(request):
             user = form.save()
             username = form.cleaned_data.get('username')
             messages.success(request, f'Account created for {username}! You can now log in.')
-            return redirect('login')
+            return redirect('home:login')
     else:
         form = CustomUserCreationForm()
     
@@ -426,7 +426,7 @@ def user_login(request):
             if not remember_me:
                 request.session.set_expiry(0)
             messages.success(request, f"Welcome back, {user.first_name or user.username}!")
-            return redirect("home")
+            return redirect("home:home")
         else:
             messages.error(request, "Invalid username or password.")
             return render(request, "pages/welcome.html")
