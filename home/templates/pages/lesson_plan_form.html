@@ -427,6 +427,9 @@
       .then(data => {
         removeLoading(loadingId);
         btn.disabled = false;
+        if (data.extraction_warnings && data.extraction_warnings.length) {
+          appendMsg('System', data.extraction_warnings.join('\n'));
+        }
         appendMsg('AI', data.ai_response || 'No response received. Please try again.');
       })
       .catch(() => {
