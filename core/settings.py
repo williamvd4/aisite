@@ -14,10 +14,7 @@ import os
 import random
 import string
 from pathlib import Path
-from dotenv import load_dotenv
 from str2bool import str2bool
-
-load_dotenv()  # take environment variables from .env.
 
 
 
@@ -38,7 +35,10 @@ else:
     print(f"Warning: .env file not found at {env_file_path}")
 
 
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY")
+if not NVIDIA_API_KEY:
+    print("Warning: NVIDIA_API_KEY is not set. AI features will not work.")
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 

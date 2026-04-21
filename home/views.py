@@ -11,9 +11,9 @@ from django.db.models import Q
 from django.conf import settings
 import json
 
-from .forms import (MyForm, LessonPlanForm, MaterialForm, ResourceForm, 
+from .forms import (LessonPlanForm, MaterialForm, ResourceForm, 
                    CustomUserCreationForm, LessonSearchForm, UserProfileForm)
-from .models import (MyFormModel, LessonPlan, Material, Resource, Curriculum, 
+from .models import (LessonPlan, Material, Resource, Curriculum, 
                     Subject, Grade, Standard, LessonSchedule)
 from .ai.ai_review import review_lesson, generate_ai_response
 from .ai.ai_utils import extract_text_from_pdf # Only import extract_text_from_pdf
@@ -223,7 +223,7 @@ def duplicate_lesson(request, pk):
     duplicated_lesson.resources.set(original_lesson.resources.all())
     
     messages.success(request, f"Lesson duplicated successfully!")
-    return redirect('edit_lesson', pk=duplicated_lesson.pk)
+    return redirect('home:edit_lesson', pk=duplicated_lesson.pk)
 
 
 @login_required
@@ -295,7 +295,7 @@ def create_material(request):
             material.user = request.user
             material.save()
             messages.success(request, f"Material '{material.title}' created successfully!")
-            return redirect('myresources')
+            return redirect('home:myresources')
     else:
         form = MaterialForm()
     
@@ -312,7 +312,7 @@ def create_resource(request):
             resource.user = request.user
             resource.save()
             messages.success(request, f"Resource '{resource.title}' created successfully!")
-            return redirect('myresources')
+            return redirect('home:myresources')
     else:
         form = ResourceForm()
     
@@ -414,16 +414,3 @@ def profile_view(request):
     return render(request, 'pages/profile.html', {'form': form})
 
 
-# Legacy view - keeping for backward compatibility
-def createnewlesson_legacy(request):
-    """Legacy lesson creation - deprecated"""
-    if request.method == "POST":
-        form = MyForm(request.POST)
-        if form.is_valid():
-            lesson = form.save()
-            messages.success(request, "Lesson created successfully!")
-            return redirect('mylessonplans')
-    else:
-        form = MyForm()
-
-    return render(request, "pages/createnewlesson_legacy.html", {"form": form})
