@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.1.0] 2026-04-21
+### Changes
+
+- Resolved repository-wide Git warnings by restoring a valid `.gitattributes`.
+- Prepared curated dependency upgrade baseline in `docs/DEPENDENCY_UPGRADE_PLAN.md` (direct `requirements.txt` diff deferred due binary-patch tooling limits).
+- Added modern frontend pipeline using Vite + PostCSS (+ Vitest scaffold).
+- Refreshed project documentation and added API/code-review docs.
+
 ## [1.0.8] 2024-03-05
 ### Changes
 

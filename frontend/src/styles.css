@@ -1,0 +1,90 @@
+/* Frontend overrides bundled by Vite + PostCSS */
+
+:root {
+  --focus-ring-color: #0056b3;
+  --focus-ring-shadow: rgba(0, 86, 179, 0.25);
+}
+
+body {
+  color: #212529;
+}
+
+a {
+  color: #0056b3;
+}
+
+a:hover {
+  color: #003d80;
+}
+
+.form-control,
+.form-select {
+  border: 1px solid #6c757d;
+  color: #212529;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--focus-ring-color);
+  box-shadow: 0 0 0 0.25rem var(--focus-ring-shadow);
+}
+
+label,
+.form-label {
+  color: #212529;
+  font-weight: 700;
+}
+
+.btn-primary {
+  background-color: #0056b3;
+  border-color: #0056b3;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background-color: #004085;
+  border-color: #00376e;
+}
+
+.text-muted {
+  color: #495057 !important;
+}
+
+.card {
+  border: 1px solid #ced4da;
+}
+
+#chat-history {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  padding: 1rem;
+  color: #212529;
+}
+
+#chat-history strong {
+  color: #0056b3;
+}
+
+[tabindex="0"]:focus,
+.form-check-input:focus + .form-check-label {
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: 2px;
+}
+
+#ai-curriculum-selection .form-check-label {
+  color: #212529;
+}
+
+#ai-curriculum-selection {
+  background-color: #fff;
+}
+
+@media (max-width: 768px) {
+  .mx-lg-5,
+  .px-lg-5 {
+    margin-left: 1rem !important;
+    margin-right: 1rem !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+}
