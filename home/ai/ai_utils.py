@@ -129,10 +129,7 @@ def _extract_with_textract(file_stream, filename):
     if textract is None:
         raise ValueError("This file type is unsupported on this server.")
     data = _read_file_bytes(file_stream)
-    suffix = Path(filename or "").suffix.lower()
-    if not suffix or suffix not in SUPPORTED_CURRICULUM_EXTENSIONS:
-        suffix = ".bin"
-    with tempfile.NamedTemporaryFile(suffix=suffix) as temp_file:
+    with tempfile.NamedTemporaryFile(suffix=".bin") as temp_file:
         temp_file.write(data)
         temp_file.flush()
         extracted = textract.process(temp_file.name)
