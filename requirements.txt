@@ -5,7 +5,7 @@ certifi==2026.1.4
 charset-normalizer==3.4.4
 coverage==7.13.1
 defusedxml==0.7.1
-Django==4.2.9
+Django==4.2.30
 django-theme-material-kit==1.0.18
 django-environ
 idna==3.11
@@ -28,6 +28,6 @@ str2bool==1.1
 tinycss2==1.4.0
 typing_extensions==4.15.0
 tzdata==2024.2
-urllib3==2.6.2
+urllib3==2.6.3
 webencodings==0.5.1
 whitenoise==6.6.0
