@@ -58,7 +58,7 @@ def _build_curriculum_context(user, selected_curriculum_ids):
             extraction_warnings.append(warning)
         except Exception:
             warning = f"Could not use '{curriculum_doc.title}': extraction failed unexpectedly."
-            logger.exception(warning)
+            logger.error(warning)
             extraction_warnings.append(warning)
 
     return "".join(context_parts), extraction_warnings
@@ -543,4 +543,3 @@ def profile_view(request):
     else:
         form = UserProfileForm(instance=request.user)
     return render(request, 'pages/profile.html', {'form': form})
-
