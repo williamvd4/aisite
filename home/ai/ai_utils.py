@@ -113,7 +113,7 @@ def _extract_text_from_plain_text(file_stream):
 def _extract_text_from_csv(file_stream):
     decoded = _extract_text_from_plain_text(file_stream)
     reader = csv.reader(io.StringIO(decoded))
-    lines = [" | ".join(cell.strip() for cell in row if cell is not None) for row in reader]
+    lines = [" | ".join(cell.strip() for cell in row if cell and cell.strip()) for row in reader]
     return "\n".join(line for line in lines if line).strip()
 
 
@@ -129,7 +129,9 @@ def _extract_with_textract(file_stream, filename):
     if textract is None:
         raise ValueError("This file type is unsupported on this server.")
     data = _read_file_bytes(file_stream)
-    suffix = Path(filename or "").suffix or ".bin"
+    suffix = Path(filename or "").suffix.lower()
+    if not suffix or suffix not in SUPPORTED_CURRICULUM_EXTENSIONS:
+        suffix = ".bin"
     with tempfile.NamedTemporaryFile(suffix=suffix) as temp_file:
         temp_file.write(data)
         temp_file.flush()
