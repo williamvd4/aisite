@@ -3,12 +3,16 @@
 <div class="container position-sticky z-index-sticky top-0">
   <div class="row">
     <div class="col-12">
-      <nav class="navbar navbar-expand-lg blur border-radius-xl top-0 mt-4 z-index-fixed shadow position-absolute my-3 py-2 start-0 end-0 mx-4">
+      <nav class="navbar navbar-expand-lg blur border-radius-xl top-0 mt-4 z-index-fixed shadow position-absolute my-3 py-2 start-0 end-0 mx-4"
+           aria-label="Primary navigation">
         <div class="container-fluid px-0">
-          <a class="navbar-brand font-weight-bolder ms-sm-3" href="{% url 'home:home' %}" rel="tooltip" title="Lesson Builder AI" data-placement="bottom">
+          <a class="navbar-brand font-weight-bolder ms-sm-3" href="{% url 'home:home' %}"
+             aria-label="Lesson Builder AI – go to dashboard">
             Lesson Builder AI
           </a>
-          <button class="navbar-toggler shadow-none ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#navigation" aria-controls="navigation" aria-expanded="false" aria-label="Toggle navigation">
+          <button class="navbar-toggler shadow-none ms-2" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#navigation"
+                  aria-controls="navigation" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon mt-2">
               <span class="navbar-toggler-bar bar1"></span>
               <span class="navbar-toggler-bar bar2"></span>
@@ -16,57 +20,97 @@
             </span>
           </button>
           <div class="collapse navbar-collapse pt-3 pb-2 py-lg-0 w-100" id="navigation">
-            <ul class="navbar-nav navbar-nav-hover ms-auto">
-              <li class="nav-item dropdown dropdown-hover mx-2">
-                <a class="nav-link ps-2 d-flex cursor-pointer align-items-center" id="dropdownMenuLessons" data-bs-toggle="dropdown" aria-expanded="false">
-                  <i class="material-icons opacity-6 me-2 text-md">dashboard</i>
-                  My Lessons
-                  <img src="{% static 'img/down-arrow-dark.svg' %}" alt="down-arrow" class="arrow ms-auto ms-md-2">
+            <ul class="navbar-nav navbar-nav-hover ms-auto" role="menubar">
+
+              <!-- Dashboard -->
+              <li class="nav-item mx-2" role="none">
+                <a class="nav-link ps-2 d-flex cursor-pointer align-items-center
+                          {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
+                   href="{% url 'home:home' %}" role="menuitem"
+                   {% if request.resolver_match.url_name == 'home' %}aria-current="page"{% endif %}>
+                  <i class="material-icons opacity-6 me-2 text-md" aria-hidden="true">dashboard</i>
+                  Dashboard
                 </a>
-                <div class="dropdown-menu dropdown-menu-animation ms-n3 dropdown-md p-3 border-radius-xl mt-0 mt-lg-3" aria-labelledby="dropdownMenuLessons">
-                  <a href="{% url 'home:mylessonplans' %}" class="dropdown-item border-radius-md">My Lesson Plans</a>
-                  <a href="{% url 'home:createnewlesson' %}" class="dropdown-item border-radius-md">Create New Lesson</a>
+              </li>
+
+              <!-- My Lessons dropdown -->
+              <li class="nav-item dropdown dropdown-hover mx-2" role="none">
+                <a class="nav-link ps-2 d-flex cursor-pointer align-items-center
+                          {% if request.resolver_match.url_name in 'mylessonplans,createnewlesson,lesson_detail,edit_lesson,delete_lesson,duplicate_lesson' %}active{% endif %}"
+                   id="dropdownMenuLessons" data-bs-toggle="dropdown"
+                   aria-expanded="false" aria-haspopup="true" role="menuitem" tabindex="0">
+                  <i class="material-icons opacity-6 me-2 text-md" aria-hidden="true">menu_book</i>
+                  My Lessons
+                  <img src="{% static 'img/down-arrow-dark.svg' %}" alt="" class="arrow ms-auto ms-md-2" aria-hidden="true">
+                </a>
+                <div class="dropdown-menu dropdown-menu-animation ms-n3 dropdown-md p-3 border-radius-xl mt-0 mt-lg-3"
+                     aria-labelledby="dropdownMenuLessons" role="menu">
+                  <a href="{% url 'home:mylessonplans' %}"
+                     class="dropdown-item border-radius-md {% if request.resolver_match.url_name == 'mylessonplans' %}active{% endif %}"
+                     role="menuitem">My Lesson Plans</a>
+                  <a href="{% url 'home:createnewlesson' %}"
+                     class="dropdown-item border-radius-md {% if request.resolver_match.url_name == 'createnewlesson' %}active{% endif %}"
+                     role="menuitem">Create New Lesson</a>
                 </div>
               </li>
 
-              <li class="nav-item dropdown dropdown-hover mx-2">
-                <a class="nav-link ps-2 d-flex cursor-pointer align-items-center" id="dropdownMenuResources" data-bs-toggle="dropdown" aria-expanded="false">
-                  <i class="material-icons opacity-6 me-2 text-md">view_day</i>
+              <!-- Curriculum -->
+              <li class="nav-item mx-2" role="none">
+                <a class="nav-link ps-2 d-flex cursor-pointer align-items-center
+                          {% if request.resolver_match.url_name == 'mycurriculums' %}active{% endif %}"
+                   href="{% url 'home:mycurriculums' %}" role="menuitem"
+                   {% if request.resolver_match.url_name == 'mycurriculums' %}aria-current="page"{% endif %}>
+                  <i class="material-icons opacity-6 me-2 text-md" aria-hidden="true">upload_file</i>
+                  Curriculum
+                </a>
+              </li>
+
+              <!-- Resources dropdown -->
+              <li class="nav-item dropdown dropdown-hover mx-2" role="none">
+                <a class="nav-link ps-2 d-flex cursor-pointer align-items-center
+                          {% if request.resolver_match.url_name in 'myresources,create_material,create_resource,edit_material,edit_resource' %}active{% endif %}"
+                   id="dropdownMenuResources" data-bs-toggle="dropdown"
+                   aria-expanded="false" aria-haspopup="true" role="menuitem" tabindex="0">
+                  <i class="material-icons opacity-6 me-2 text-md" aria-hidden="true">folder_open</i>
                   Resources
-                  <img src="{% static 'img/down-arrow-dark.svg' %}" alt="down-arrow" class="arrow ms-auto ms-md-2">
+                  <img src="{% static 'img/down-arrow-dark.svg' %}" alt="" class="arrow ms-auto ms-md-2" aria-hidden="true">
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-animation dropdown-md mt-0 mt-lg-3 p-3 border-radius-lg" aria-labelledby="dropdownMenuResources">
-                  <li class="nav-item">
-                    <a class="dropdown-item py-2 ps-3 border-radius-md" href="{% url 'home:myresources' %}">My Resources</a>
-                  </li>
-                  <li class="nav-item">
-                    <a class="dropdown-item py-2 ps-3 border-radius-md" href="{% url 'home:mycurriculums' %}">My Curriculums</a>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-animation dropdown-md mt-0 mt-lg-3 p-3 border-radius-lg"
+                    aria-labelledby="dropdownMenuResources" role="menu">
+                  <li role="none">
+                    <a class="dropdown-item py-2 ps-3 border-radius-md
+                              {% if request.resolver_match.url_name == 'myresources' %}active{% endif %}"
+                       href="{% url 'home:myresources' %}" role="menuitem">My Resources</a>
                   </li>
                 </ul>
               </li>
 
-              <li class="nav-item mx-2">
-                <a class="nav-link ps-2 d-flex cursor-pointer align-items-center" href="{% url 'home:mycalendar' %}">
-                  <i class="material-icons opacity-6 me-2 text-md">calendar_today</i>
-                  My Calendar
+              <!-- Profile dropdown -->
+              <li class="nav-item dropdown dropdown-hover mx-2" role="none">
+                <a class="nav-link ps-2 d-flex cursor-pointer align-items-center
+                          {% if request.resolver_match.url_name == 'profile' %}active{% endif %}"
+                   id="dropdownMenuProfile" data-bs-toggle="dropdown"
+                   aria-expanded="false" aria-haspopup="true" role="menuitem" tabindex="0">
+                  <i class="material-icons opacity-6 me-2 text-md" aria-hidden="true">person</i>
+                  {% if user.is_authenticated %}{{ user.first_name|default:user.username }}{% else %}Account{% endif %}
+                  <img src="{% static 'img/down-arrow-dark.svg' %}" alt="" class="arrow ms-auto ms-md-2" aria-hidden="true">
                 </a>
-              </li>
-
-              <li class="nav-item dropdown dropdown-hover mx-2">
-                <a class="nav-link ps-2 d-flex cursor-pointer align-items-center" id="dropdownMenuProfile" data-bs-toggle="dropdown" aria-expanded="false">
-                  <i class="material-icons opacity-6 me-2 text-md">person</i>
-                  Profile
-                  <img src="{% static 'img/down-arrow-dark.svg' %}" alt="down-arrow" class="arrow ms-auto ms-md-2">
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-animation dropdown-md mt-0 mt-lg-3 p-3 border-radius-lg" aria-labelledby="dropdownMenuProfile">
-                  <li class="nav-item">
-                    <a class="dropdown-item py-2 ps-3 border-radius-md" href="{% url 'home:profile' %}">My Profile</a>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-animation dropdown-md mt-0 mt-lg-3 p-3 border-radius-lg"
+                    aria-labelledby="dropdownMenuProfile" role="menu">
+                  <li role="none">
+                    <a class="dropdown-item py-2 ps-3 border-radius-md
+                              {% if request.resolver_match.url_name == 'profile' %}active{% endif %}"
+                       href="{% url 'home:profile' %}" role="menuitem">My Profile</a>
                   </li>
-                  <li class="nav-item">
-                    <a class="dropdown-item py-2 ps-3 border-radius-md" href="{% url 'home:logout' %}">Logout</a>
+                  <li role="none">
+                    <a class="dropdown-item py-2 ps-3 border-radius-md text-danger"
+                       href="{% url 'home:logout' %}" role="menuitem">
+                      <i class="material-icons opacity-6 me-1 text-sm" aria-hidden="true">logout</i> Logout
+                    </a>
                   </li>
                 </ul>
               </li>
+
             </ul>
           </div>
         </div>

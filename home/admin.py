@@ -1,7 +1,7 @@
 # Import the necessary modules
 from django.contrib import admin
 from .models import (Curriculum, Resource, Material,
-                    LessonPlan, Subject, Grade, Standard, LessonSchedule)
+                    LessonPlan, Subject, Grade, Standard, LessonSchedule, AIUsageLog)
 
 
 # Admin for new comprehensive models
@@ -89,3 +89,13 @@ class LessonScheduleAdmin(admin.ModelAdmin):
     date_hierarchy = 'scheduled_date'
 
 
+
+
+@admin.register(AIUsageLog)
+class AIUsageLogAdmin(admin.ModelAdmin):
+    list_display = ('created_at', 'user', 'request_type', 'success', 'latency_ms',
+                    'prompt_length', 'used_curriculum_context', 'failure_reason')
+    list_filter = ('success', 'request_type', 'used_curriculum_context', 'created_at')
+    search_fields = ('user__username', 'failure_reason')
+    readonly_fields = ('created_at',)
+    ordering = ('-created_at',)
