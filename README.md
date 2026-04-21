@@ -5,6 +5,7 @@ Lesson Builder AI is a Django web application for generating, organizing, and re
 ## Current feature set
 
 - User authentication (signup/login/password reset).
+- Public landing page at `/` with pre-login overview and CTA paths to signup/login.
 - Curriculum and resource management.
 - Lesson plan creation, edit, detail, and delete flows.
 - Calendar-oriented lesson planning pages.

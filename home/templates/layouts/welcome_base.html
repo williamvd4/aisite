@@ -37,6 +37,7 @@
 <link id="pagestyle" href="{% static 'css/material-kit.css' %}" rel="stylesheet" />
 <link href="{% static 'css/custom_accessibility.css' %}" rel="stylesheet" />
 <link href="{% static 'dist/assets/app.css' %}" rel="stylesheet" />
+{% block stylesheets %}{% endblock %}
 </head>
 
 <body {% block body %}{% endblock body %} >
