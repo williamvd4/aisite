@@ -57,9 +57,16 @@
       <div id="ai-chat-popup" class="card card-raised my-5 d-flex flex-column" style="height: 80vh; position: -webkit-sticky; position: sticky; top: 20px;"> <!-- Added sticky positioning -->
         <h1 class="text-center mb-0 p-3 border-bottom">AI Lesson Assistant</h1>
         
-        <div id="chat-history" class="p-3 flex-grow-1" style="overflow-y: auto;">
+          <div id="chat-history" class="p-3 flex-grow-1" style="overflow-y: auto;">
           <!-- Chat messages will be appended here -->
-          <div class="mb-2"><strong>AI:</strong> How can I help you with your lesson plan today? Select any relevant curriculums below to include them in our discussion.</div>
+          <div class="mb-2">
+            <strong>AI:</strong> How can I help you with your lesson plan today?
+            Select any relevant curriculums below to include them in our discussion.
+            <br><small class="text-muted">
+              💡 Try asking: "Write 3 learning objectives for a lesson on fractions" or
+              "Suggest a 5-minute opening activity to hook students."
+            </small>
+          </div>
         </div>
         
         <!-- Curriculum Selection for AI Chat -->
@@ -84,12 +91,17 @@
         <form id="ai-chat-form" method="POST" action=""> <!-- Action will be set by view -->
           {% csrf_token %}
           <div class="form-group p-3 border-top">
-            <label for="ai_input">Your Question:</label>
-            <textarea class="form-control" id="ai_input" name="ai_input" rows="2" placeholder="e.g., Suggest learning objectives..."></textarea> <!-- Reduced rows slightly -->
+            <label for="ai_input" class="form-label"><strong>Ask the AI assistant:</strong></label>
+            <textarea class="form-control" id="ai_input" name="ai_input" rows="2"
+                      placeholder="e.g., Suggest 3 learning objectives for this lesson"
+                      aria-describedby="aiInputHint"></textarea>
+            <div id="aiInputHint" class="form-text text-muted">
+              Select curriculum files above to give the AI relevant context.
+            </div>
           </div>
           <div class="text-center p-3 border-top">
-            <button class="btn btn-primary" type="submit"> <!-- Adjusted button size -->
-              Ask AI
+            <button class="btn btn-primary" type="submit" id="askAiBtn">
+              <i class="material-icons opacity-10" aria-hidden="true">send</i> Ask AI
             </button>
           </div>
         </form>
@@ -105,13 +117,22 @@ document.getElementById('ai-chat-form').addEventListener('submit', function(e) {
   const formData = new FormData(this);
   const userInput = formData.get('ai_input');
 
+  if (!userInput || !userInput.trim()) return;
+
   // Get selected curriculum IDs for AI chat
   const selectedCurriculumCheckboxes = document.querySelectorAll('.ai-curriculum-checkbox:checked');
   const curriculumIds = Array.from(selectedCurriculumCheckboxes).map(cb => cb.value);
   curriculumIds.forEach(id => formData.append('curriculum_ids[]', id));
   
-  appendMessage('User', userInput);
+  appendMessage('You', userInput);
   document.getElementById('ai_input').value = ''; // Clear input field
+
+  // Show loading indicator
+  const loadingId = 'ai-loading-' + Date.now();
+  appendLoadingMessage(loadingId);
+
+  const askBtn = document.getElementById('askAiBtn');
+  askBtn.disabled = true;
   
   // Determine the correct URL based on whether creating or editing
   const formAction = "{% if lesson %}{% url 'home:edit_lesson' lesson.pk %}{% else %}{% url 'home:createnewlesson' %}{% endif %}";
@@ -124,20 +145,29 @@ document.getElementById('ai-chat-form').addEventListener('submit', function(e) {
       'X-CSRFToken': '{{ csrf_token }}'
     }
   })
-  .then(response => response.json())
+  .then(response => {
+    if (!response.ok) { throw new Error('Network response was not ok'); }
+    return response.json();
+  })
   .then(data => {
+    removeLoadingMessage(loadingId);
+    askBtn.disabled = false;
     if (data.ai_response) {
       appendMessage('AI', data.ai_response);
+    } else {
+      appendMessage('System', 'No response received. Please try again.');
     }
   })
   .catch(error => {
     console.error('Error:', error);
-    appendMessage('System', 'An error occurred while processing your request.');
+    removeLoadingMessage(loadingId);
+    askBtn.disabled = false;
+    appendMessage('System', 'An error occurred. Please check your connection and try again.');
   });
 });
 
-document.getElementById('ai_input').addEventListener('keypress', function(e) {
-  if (e.key === 'Enter') {
+document.getElementById('ai_input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
     document.getElementById('ai-chat-form').dispatchEvent(new Event('submit'));
   }
@@ -146,10 +176,27 @@ document.getElementById('ai_input').addEventListener('keypress', function(e) {
 function appendMessage(sender, message) {
   const chatHistory = document.getElementById('chat-history');
   const messageElement = document.createElement('div');
-  messageElement.className = 'mb-2';
-  messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+  messageElement.className = 'mb-3 p-2 border-radius-md ' + (sender === 'You' ? 'bg-light' : '');
+  const safeMessage = message.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  messageElement.innerHTML = `<strong>${sender}:</strong><span class="ms-1">${safeMessage}</span>`;
   chatHistory.appendChild(messageElement);
   chatHistory.scrollTop = chatHistory.scrollHeight;
+}
+
+function appendLoadingMessage(id) {
+  const chatHistory = document.getElementById('chat-history');
+  const el = document.createElement('div');
+  el.id = id;
+  el.className = 'mb-2';
+  el.setAttribute('aria-live', 'polite');
+  el.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span><em>AI is thinking…</em>';
+  chatHistory.appendChild(el);
+  chatHistory.scrollTop = chatHistory.scrollHeight;
+}
+
+function removeLoadingMessage(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
 }
 </script>
 

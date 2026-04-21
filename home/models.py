@@ -192,6 +192,37 @@ class Curriculum(models.Model):
         return self.title
 
 
+class AIUsageLog(models.Model):
+    """Structured log of AI interactions for analytics and debugging."""
+
+    REQUEST_TYPE_CHOICES = [
+        ('lesson_assist', 'Lesson Assistance'),
+        ('lesson_review', 'Lesson Review'),
+        ('general_chat', 'General Chat'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                              related_name='ai_usage_logs')
+    request_type = models.CharField(max_length=50, choices=REQUEST_TYPE_CHOICES,
+                                     default='general_chat')
+    prompt_length = models.IntegerField(default=0, help_text="Character count of the prompt")
+    used_curriculum_context = models.BooleanField(default=False)
+    response_length = models.IntegerField(default=0, help_text="Character count of the response")
+    latency_ms = models.IntegerField(default=0, help_text="Time taken in milliseconds")
+    success = models.BooleanField(default=True)
+    failure_reason = models.CharField(max_length=200, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "AI Usage Log"
+        verbose_name_plural = "AI Usage Logs"
+
+    def __str__(self):
+        status = "OK" if self.success else "FAIL"
+        return f"[{status}] {self.get_request_type_display()} – {self.created_at:%Y-%m-%d %H:%M}"
+
+
 class LessonSchedule(models.Model):
     """Schedule lessons for specific dates/times"""
     lesson_plan = models.ForeignKey(LessonPlan, on_delete=models.CASCADE, related_name='schedules')

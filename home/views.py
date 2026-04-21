@@ -10,13 +10,19 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.conf import settings
 import json
+import os
 
-from .forms import (LessonPlanForm, MaterialForm, ResourceForm, 
+from .forms import (LessonPlanForm, MaterialForm, ResourceForm, CurriculumForm,
                    CustomUserCreationForm, LessonSearchForm, UserProfileForm)
-from .models import (LessonPlan, Material, Resource, Curriculum, 
+from .models import (LessonPlan, Material, Resource, Curriculum,
                     Subject, Grade, Standard, LessonSchedule)
 from .ai.ai_review import review_lesson, generate_ai_response
 from .ai.ai_utils import extract_text_from_pdf # Only import extract_text_from_pdf
+
+# Allowed MIME types and extensions for curriculum uploads
+_ALLOWED_CURRICULUM_TYPES = {'application/pdf'}
+_ALLOWED_CURRICULUM_EXTENSIONS = {'.pdf'}
+_MAX_CURRICULUM_SIZE_BYTES = 20 * 1024 * 1024  # 20 MB
 
 
 def home(request):
@@ -141,7 +147,12 @@ def createnewlesson(request):
             if context_text:
                 full_prompt += f"\n\n--- Relevant Curriculum Context ---{context_text}" # Corrected string concatenation
 
-            ai_response = generate_ai_response(full_prompt)
+            ai_response = generate_ai_response(
+                full_prompt,
+                request_type='lesson_assist',
+                user=request.user,
+                used_curriculum_context=bool(context_text),
+            )
             return JsonResponse({"ai_response": ai_response})
         
         # Handle lesson creation
@@ -188,7 +199,12 @@ def edit_lesson(request, pk):
             if context_text:
                 full_prompt += f"\n\n--- Relevant Curriculum Context ---{context_text}" # Corrected string concatenation
 
-            ai_response = generate_ai_response(full_prompt)
+            ai_response = generate_ai_response(
+                full_prompt,
+                request_type='lesson_assist',
+                user=request.user,
+                used_curriculum_context=bool(context_text),
+            )
             return JsonResponse({"ai_response": ai_response})
 
         form = LessonPlanForm(request.POST, instance=lesson, user=request.user)
@@ -211,10 +227,11 @@ def duplicate_lesson(request, pk):
     """Duplicate an existing lesson plan"""
     original_lesson = get_object_or_404(LessonPlan, pk=pk, user=request.user)
     
-    # Create a copy
+    # Create a copy by loading a fresh instance and clearing the pk
     duplicated_lesson = LessonPlan.objects.get(pk=pk)
     duplicated_lesson.pk = None  # This will create a new instance
     duplicated_lesson.title = f"Copy of {original_lesson.title}"
+    duplicated_lesson.user = request.user  # Ensure ownership is preserved
     duplicated_lesson.save()
     
     # Copy many-to-many relationships
@@ -222,7 +239,7 @@ def duplicate_lesson(request, pk):
     duplicated_lesson.materials.set(original_lesson.materials.all())
     duplicated_lesson.resources.set(original_lesson.resources.all())
     
-    messages.success(request, f"Lesson duplicated successfully!")
+    messages.success(request, f"Lesson duplicated successfully as '{duplicated_lesson.title}'!")
     return redirect('home:edit_lesson', pk=duplicated_lesson.pk)
 
 
@@ -296,10 +313,41 @@ def create_material(request):
             material.save()
             messages.success(request, f"Material '{material.title}' created successfully!")
             return redirect('home:myresources')
+        else:
+            messages.error(request, "Please correct the errors below.")
     else:
         form = MaterialForm()
     
     return render(request, "pages/create_material.html", {"form": form})
+
+
+@login_required
+def edit_material(request, pk):
+    """Edit existing teaching material"""
+    material = get_object_or_404(Material, pk=pk, user=request.user)
+    if request.method == "POST":
+        form = MaterialForm(request.POST, request.FILES, instance=material)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Material '{material.title}' updated successfully!")
+            return redirect('home:myresources')
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = MaterialForm(instance=material)
+    return render(request, "pages/edit_material.html", {"form": form, "material": material})
+
+
+@login_required
+def delete_material(request, pk):
+    """Delete teaching material"""
+    material = get_object_or_404(Material, pk=pk, user=request.user)
+    if request.method == "POST":
+        material_title = material.title
+        material.delete()
+        messages.success(request, f"Material '{material_title}' deleted successfully!")
+        return redirect('home:myresources')
+    return render(request, "pages/confirm_delete_material.html", {"material": material})
 
 
 @login_required
@@ -313,10 +361,41 @@ def create_resource(request):
             resource.save()
             messages.success(request, f"Resource '{resource.title}' created successfully!")
             return redirect('home:myresources')
+        else:
+            messages.error(request, "Please correct the errors below.")
     else:
         form = ResourceForm()
     
     return render(request, "pages/create_resource.html", {"form": form})
+
+
+@login_required
+def edit_resource(request, pk):
+    """Edit existing external resource"""
+    resource = get_object_or_404(Resource, pk=pk, user=request.user)
+    if request.method == "POST":
+        form = ResourceForm(request.POST, instance=resource)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Resource '{resource.title}' updated successfully!")
+            return redirect('home:myresources')
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = ResourceForm(instance=resource)
+    return render(request, "pages/edit_resource.html", {"form": form, "resource": resource})
+
+
+@login_required
+def delete_resource(request, pk):
+    """Delete external resource"""
+    resource = get_object_or_404(Resource, pk=pk, user=request.user)
+    if request.method == "POST":
+        resource_title = resource.title
+        resource.delete()
+        messages.success(request, f"Resource '{resource_title}' deleted successfully!")
+        return redirect('home:myresources')
+    return render(request, "pages/confirm_delete_resource.html", {"resource": resource})
 
 
 def signup(request):
@@ -365,11 +444,11 @@ def ai_chat(request):
         user_input = request.POST.get("ai_input", "")
         
         if user_input:
-            try:
-                ai_response = generate_ai_response(user_input)
-            except Exception as e:
-                ai_response = "Sorry, I'm having trouble right now. Please try again later."
-                print(f"AI Chat Error: {e}")
+            ai_response = generate_ai_response(
+                user_input,
+                request_type='general_chat',
+                user=request.user,
+            )
 
     return render(request, "ai/ai_chat.html", {
         "ai_response": ai_response, 
@@ -377,28 +456,58 @@ def ai_chat(request):
     })
 
 
-@require_POST
 @login_required
+@require_POST # Ensure this view only accepts POST requests for safety
 def upload_curriculum(request):
-    """Upload curriculum file"""
-    if request.FILES.get("file"):
-        file = request.FILES["file"]
-        # You'll need to add subject and grade fields to the form
+    """Upload curriculum file with type/size validation."""
+    uploaded_file = request.FILES.get("file")
+    if not uploaded_file:
+        return JsonResponse({"error": "No file provided. Please choose a PDF file to upload."}, status=400)
+
+    # Validate file extension
+    _, ext = os.path.splitext(uploaded_file.name.lower())
+    if ext not in _ALLOWED_CURRICULUM_EXTENSIONS:
+        return JsonResponse(
+            {"error": "Only PDF files are accepted. Please upload a .pdf file."},
+            status=400,
+        )
+
+    # Validate MIME type (from browser-reported content type)
+    if uploaded_file.content_type not in _ALLOWED_CURRICULUM_TYPES:
+        return JsonResponse(
+            {"error": "The file does not appear to be a valid PDF. Please upload a proper PDF file."},
+            status=400,
+        )
+
+    # Validate file size
+    if uploaded_file.size > _MAX_CURRICULUM_SIZE_BYTES:
+        max_mb = _MAX_CURRICULUM_SIZE_BYTES // (1024 * 1024)
+        return JsonResponse(
+            {"error": f"File is too large. Maximum allowed size is {max_mb} MB."},
+            status=400,
+        )
+
+    form = CurriculumForm(request.POST, request.FILES)
+    if form.is_valid():
+        curriculum = form.save(commit=False)
+        curriculum.title = uploaded_file.name
+        curriculum.user = request.user
+        curriculum.file = uploaded_file
+        curriculum.save()
+    else:
         curriculum = Curriculum(
-            title=file.name, 
-            user=request.user, 
-            file=file,
-            # subject=subject,  # Add these after updating the form
-            # grade=grade,
+            title=uploaded_file.name,
+            user=request.user,
+            file=uploaded_file,
         )
         curriculum.save()
-        return JsonResponse({
-            "message": "File uploaded successfully",
-            "file_name": file.name,
-            "file_url": curriculum.file.url,
-            "curriculum_pk": curriculum.pk  # Add curriculum_pk to the response
-        })
-    return JsonResponse({"error": "No file uploaded"}, status=400)
+
+    return JsonResponse({
+        "message": "File uploaded successfully",
+        "file_name": uploaded_file.name,
+        "file_url": curriculum.file.url,
+        "curriculum_pk": curriculum.pk,
+    })
 
 
 @login_required

@@ -1,23 +1,155 @@
 {% extends 'layouts/base_background.html' %}
 {% load static %}
 
+{% block title %}My Resources{% endblock title %}
 
 {% block body %} class="index-page bg-gray-200" {% endblock body %}
 
 {% block content %}
+<div class="container mt-5 mb-5">
 
-</div></div></div>
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-md-6 text-center">
-      <h3>Recents</h3>
-      <input type="text" placeholder="Search for a lesson plan">
+  <!-- Page header -->
+  <div class="row mb-4 align-items-center">
+    <div class="col">
+      <h2><i class="material-icons opacity-10 me-2">folder_open</i> My Resources &amp; Materials</h2>
     </div>
-    <div class="col-md-6 text-center">
-      <h3>Upcoming</h3>
+    <div class="col-auto">
+      <a href="{% url 'home:create_material' %}" class="btn btn-primary me-2">
+        <i class="material-icons opacity-10">add_box</i> Add Material
+      </a>
+      <a href="{% url 'home:create_resource' %}" class="btn btn-outline-primary">
+        <i class="material-icons opacity-10">add_link</i> Add Resource
+      </a>
     </div>
   </div>
-</div>
-</div>
 
-{% endblock %}
+  <!-- Teaching Materials -->
+  <div class="card mb-5">
+    <div class="card-header p-3">
+      <h5 class="mb-0"><i class="material-icons opacity-10 me-2">description</i> Teaching Materials</h5>
+    </div>
+    {% if materials %}
+      <div class="table-responsive">
+        <table class="table align-items-center mb-0">
+          <thead>
+            <tr>
+              <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Title</th>
+              <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Type</th>
+              <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Subject</th>
+              <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Grade</th>
+              <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for material in materials %}
+            <tr>
+              <td>
+                <div class="d-flex px-2 py-1">
+                  <div class="d-flex flex-column justify-content-center">
+                    <h6 class="mb-0 text-xs">{{ material.title }}</h6>
+                    {% if material.description %}
+                      <p class="text-xs text-secondary mb-0">{{ material.description|truncatechars:60 }}</p>
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+              <td><span class="badge bg-gradient-secondary">{{ material.get_material_type_display }}</span></td>
+              <td><p class="text-xs font-weight-bold mb-0">{{ material.subject|default:"—" }}</p></td>
+              <td><p class="text-xs font-weight-bold mb-0">{{ material.grade|default:"—" }}</p></td>
+              <td class="align-middle text-center">
+                {% if material.file %}
+                  <a href="{{ material.file.url }}" target="_blank" rel="noopener noreferrer"
+                     class="btn btn-link text-info px-2 mb-0" aria-label="Download {{ material.title }}">
+                    <i class="material-icons opacity-10">download</i>
+                  </a>
+                {% endif %}
+                <a href="{% url 'home:edit_material' material.pk %}" class="btn btn-link text-dark px-2 mb-0"
+                   aria-label="Edit {{ material.title }}">
+                  <i class="material-icons opacity-10">edit</i>
+                </a>
+                <a href="{% url 'home:delete_material' material.pk %}" class="btn btn-link text-danger px-2 mb-0"
+                   aria-label="Delete {{ material.title }}">
+                  <i class="material-icons opacity-10">delete</i>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="card-body text-center py-5">
+        <i class="material-icons text-secondary" style="font-size: 3rem;">inbox</i>
+        <p class="lead mt-2">No teaching materials yet.</p>
+        <a href="{% url 'home:create_material' %}" class="btn btn-primary">
+          <i class="material-icons opacity-10">add_box</i> Add Your First Material
+        </a>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- External Resources -->
+  <div class="card">
+    <div class="card-header p-3">
+      <h5 class="mb-0"><i class="material-icons opacity-10 me-2">link</i> External Resources</h5>
+    </div>
+    {% if resources %}
+      <div class="table-responsive">
+        <table class="table align-items-center mb-0">
+          <thead>
+            <tr>
+              <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Title</th>
+              <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Type</th>
+              <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Subject</th>
+              <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Grade</th>
+              <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for resource in resources %}
+            <tr>
+              <td>
+                <div class="d-flex px-2 py-1">
+                  <div class="d-flex flex-column justify-content-center">
+                    <h6 class="mb-0 text-xs">
+                      <a href="{{ resource.url }}" target="_blank" rel="noopener noreferrer">
+                        {{ resource.title }}
+                      </a>
+                    </h6>
+                    {% if resource.description %}
+                      <p class="text-xs text-secondary mb-0">{{ resource.description|truncatechars:60 }}</p>
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+              <td><span class="badge bg-gradient-info">{{ resource.get_resource_type_display }}</span></td>
+              <td><p class="text-xs font-weight-bold mb-0">{{ resource.subject|default:"—" }}</p></td>
+              <td><p class="text-xs font-weight-bold mb-0">{{ resource.grade|default:"—" }}</p></td>
+              <td class="align-middle text-center">
+                <a href="{% url 'home:edit_resource' resource.pk %}" class="btn btn-link text-dark px-2 mb-0"
+                   aria-label="Edit {{ resource.title }}">
+                  <i class="material-icons opacity-10">edit</i>
+                </a>
+                <a href="{% url 'home:delete_resource' resource.pk %}" class="btn btn-link text-danger px-2 mb-0"
+                   aria-label="Delete {{ resource.title }}">
+                  <i class="material-icons opacity-10">delete</i>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="card-body text-center py-5">
+        <i class="material-icons text-secondary" style="font-size: 3rem;">link_off</i>
+        <p class="lead mt-2">No external resources yet.</p>
+        <a href="{% url 'home:create_resource' %}" class="btn btn-outline-primary">
+          <i class="material-icons opacity-10">add_link</i> Add Your First Resource
+        </a>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock content %}

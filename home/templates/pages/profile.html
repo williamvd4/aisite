@@ -1,15 +1,55 @@
 {% extends 'layouts/base.html' %}
 {% load static %}
 
-{% block title %}User Profile{% endblock %}
+{% block title %}My Profile – Lesson Builder AI{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2>User Profile</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Update Profile</button>
-    </form>
+<div class="container mt-5 mb-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+      <div class="card card-raised">
+        <div class="card-header p-3">
+          <h2 class="mb-0"><i class="material-icons opacity-10 me-2">manage_accounts</i> My Profile</h2>
+        </div>
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <div class="card-body">
+            {% for field in form %}
+              <div class="mb-3">
+                <label class="form-label fw-bold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                  <div class="text-danger small mt-1" role="alert">
+                    {% for error in field.errors %}{{ error }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                  </div>
+                {% endif %}
+                {% if field.help_text %}
+                  <div class="form-text text-muted">{{ field.help_text }}</div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+          <div class="card-footer d-flex justify-content-between">
+            <a href="{% url 'home:home' %}" class="btn btn-secondary">
+              <i class="material-icons opacity-10">arrow_back</i> Back to Dashboard
+            </a>
+            <button type="submit" class="btn btn-primary">
+              <i class="material-icons opacity-10">save</i> Update Profile
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-body">
+          <h5>Password</h5>
+          <p class="text-muted mb-2">Need to change your password?</p>
+          <a href="{% url 'home:password_reset' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="material-icons opacity-10">lock_reset</i> Reset Password via Email
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
