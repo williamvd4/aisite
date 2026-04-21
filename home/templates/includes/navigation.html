@@ -36,7 +36,7 @@
               <!-- My Lessons dropdown -->
               <li class="nav-item dropdown dropdown-hover mx-2" role="none">
                 <a class="nav-link ps-2 d-flex cursor-pointer align-items-center
-                          {% if request.resolver_match.url_name in 'mylessonplans,createnewlesson,lesson_detail,edit_lesson,delete_lesson,duplicate_lesson' %}active{% endif %}"
+                          {% if request.resolver_match.url_name == 'mylessonplans' or request.resolver_match.url_name == 'createnewlesson' or request.resolver_match.url_name == 'lesson_detail' or request.resolver_match.url_name == 'edit_lesson' or request.resolver_match.url_name == 'delete_lesson' or request.resolver_match.url_name == 'duplicate_lesson' %}active{% endif %}"
                    id="dropdownMenuLessons" data-bs-toggle="dropdown"
                    aria-expanded="false" aria-haspopup="true" role="menuitem" tabindex="0">
                   <i class="material-icons opacity-6 me-2 text-md" aria-hidden="true">menu_book</i>
@@ -68,7 +68,7 @@
               <!-- Resources dropdown -->
               <li class="nav-item dropdown dropdown-hover mx-2" role="none">
                 <a class="nav-link ps-2 d-flex cursor-pointer align-items-center
-                          {% if request.resolver_match.url_name in 'myresources,create_material,create_resource,edit_material,edit_resource' %}active{% endif %}"
+                          {% if request.resolver_match.url_name == 'myresources' or request.resolver_match.url_name == 'create_material' or request.resolver_match.url_name == 'create_resource' or request.resolver_match.url_name == 'edit_material' or request.resolver_match.url_name == 'edit_resource' %}active{% endif %}"
                    id="dropdownMenuResources" data-bs-toggle="dropdown"
                    aria-expanded="false" aria-haspopup="true" role="menuitem" tabindex="0">
                   <i class="material-icons opacity-6 me-2 text-md" aria-hidden="true">folder_open</i>

@@ -10,6 +10,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.conf import settings
 import json
+import os
 
 from .forms import (LessonPlanForm, MaterialForm, ResourceForm, CurriculumForm,
                    CustomUserCreationForm, LessonSearchForm, UserProfileForm)
@@ -459,7 +460,6 @@ def ai_chat(request):
 @require_POST # Ensure this view only accepts POST requests for safety
 def upload_curriculum(request):
     """Upload curriculum file with type/size validation."""
-    import os
     uploaded_file = request.FILES.get("file")
     if not uploaded_file:
         return JsonResponse({"error": "No file provided. Please choose a PDF file to upload."}, status=400)
