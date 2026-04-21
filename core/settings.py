@@ -39,6 +39,10 @@ NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY")
 if not NVIDIA_API_KEY:
     print("Warning: NVIDIA_API_KEY is not set. AI features will not work.")
 
+# NVIDIA NIM API configuration
+BASE_URL = os.getenv("BASE_URL", "https://integrate.api.nvidia.com/v1")
+NVIDIA_MODEL = os.getenv("NVIDIA_MODEL", "meta/llama-3.1-8b-instruct")
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 

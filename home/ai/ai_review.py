@@ -19,15 +19,17 @@ def generate_ai_response(prompt: str) -> str:
     api_key = getattr(settings, "NVIDIA_API_KEY", None)
     if not api_key:
         return "Error: NVIDIA_API_KEY not configured. Please set it in your .env file."
+    base_url = getattr(settings, "BASE_URL", "https://integrate.api.nvidia.com/v1")
+    model = getattr(settings, "NVIDIA_MODEL", "meta/llama-3.1-8b-instruct")
 
     client = OpenAI(
-        base_url="https://integrate.api.nvidia.com/v1",
+        base_url=base_url,
         api_key=api_key,
     )
 
     try:
         response = client.chat.completions.create(
-            model="meta/llama-3.1-8b-instruct",
+            model=model,
             messages=[{"role": "user", "content": prompt}],
             max_tokens=2048,
             temperature=0.7,
