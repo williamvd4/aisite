@@ -11,7 +11,7 @@
   <div class="row mb-4 align-items-center">
     <div class="col">
       <h2><i class="material-icons opacity-10 me-2">menu_book</i> My Curriculum</h2>
-      <p class="text-muted">Upload your curriculum PDFs so the AI assistant can reference them when building lesson plans.</p>
+      <p class="text-muted">Upload curriculum files so the AI assistant can reference them when building lesson plans.</p>
     </div>
     <div class="col-auto">
       <button type="button" class="btn btn-primary" onclick="showUploadForm()" aria-controls="uploadForm">
@@ -23,7 +23,7 @@
   <!-- Upload form (hidden by default) -->
   <div class="card mb-4" id="uploadFormCard" style="display: none;">
     <div class="card-header p-3">
-      <h5 class="mb-0">Upload New Curriculum (PDF only, max 20 MB)</h5>
+      <h5 class="mb-0">Upload New Curriculum (supported formats, max 20 MB)</h5>
     </div>
     <div class="card-body">
       <form id="uploadForm" action="{% url 'home:upload_curriculum' %}" method="POST"
@@ -31,10 +31,10 @@
         {% csrf_token %}
         <div class="row g-2 align-items-end">
           <div class="col-md-8">
-            <label for="curriculumFile" class="form-label">Select PDF file</label>
+            <label for="curriculumFile" class="form-label">Select curriculum file</label>
             <input type="file" class="form-control" name="file" id="curriculumFile"
-                   accept=".pdf,application/pdf" required aria-describedby="fileHelp">
-            <div id="fileHelp" class="form-text text-muted">Only PDF files are supported. Maximum size: 20 MB.</div>
+                   accept=".pdf,.docx,.pptx,.txt,.csv,.jpg,.jpeg,.png,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/plain,text/csv,image/jpeg,image/png" required aria-describedby="fileHelp">
+            <div id="fileHelp" class="form-text text-muted">Supported: PDF, DOCX, PPTX, TXT, CSV, JPG, JPEG, PNG. Maximum size: 20 MB.</div>
           </div>
           <div class="col-md-4">
             <button class="btn btn-success w-100" type="submit" id="uploadBtn">
@@ -108,7 +108,7 @@
         <div id="emptyState">
           <i class="material-icons text-secondary" style="font-size: 3rem;">menu_book</i>
           <p class="lead mt-2">No curriculum files uploaded yet.</p>
-          <p class="text-muted">Upload a PDF curriculum to help the AI assistant tailor lesson suggestions to your content.</p>
+          <p class="text-muted">Upload curriculum files (PDF, DOCX, PPTX, TXT, CSV, JPG, JPEG, PNG) to help the AI assistant tailor lesson suggestions to your content.</p>
           <button type="button" class="btn btn-primary" onclick="showUploadForm()">
             <i class="material-icons opacity-10">upload_file</i> Upload Your First Curriculum
           </button>
