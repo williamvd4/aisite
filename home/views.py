@@ -97,6 +97,8 @@ def home(request):
 
 
 def welcome(request):
+    if request.user.is_authenticated:
+        return redirect(reverse('home:home'))
     return render(request, 'pages/welcome.html')
 
 
@@ -449,9 +451,9 @@ def user_login(request):
             return redirect("home:home")
         else:
             messages.error(request, "Invalid username or password.")
-            return render(request, "pages/welcome.html")
+            return render(request, "pages/login.html")
     else:
-        return render(request, "pages/welcome.html")
+        return render(request, "pages/login.html")
 
 
 @login_required

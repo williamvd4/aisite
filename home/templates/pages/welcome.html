@@ -1,66 +1,133 @@
 {% extends 'layouts/welcome_base.html' %}
 {% load static %}
 
-{% block title %}Sign In – Lesson Builder AI{% endblock title %}
+{% block title %}Lesson Builder AI – Plan Better Lessons{% endblock title %}
 
 {% block body %} class="index-page bg-gray-200" {% endblock body %}
 
+{% block stylesheets %}
+<style>
+  .landing-hero {
+    min-height: 100vh;
+    background-image: url('{% static "img/background.jpg" %}');
+    background-size: cover;
+    background-position: center;
+  }
+  .landing-card {
+    backdrop-filter: blur(6px);
+  }
+  .feature-icon {
+    width: 52px;
+    height: 52px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="page-header align-items-start min-vh-100" style="background-image: url('{% static 'img/background.jpg' %}');" data-bs-theme="dark">
+<a href="#main-content" class="visually-hidden-focusable position-absolute top-0 start-0 m-3 bg-white text-dark px-3 py-2 border-radius-md">
+  Skip to main content
+</a>
+<main id="main-content">
+<header class="page-header align-items-center landing-hero">
   <span class="mask bg-gradient-dark opacity-6"></span>
-  <div class="container my-auto">
-    <div class="row">
-      <div class="col-lg-6 col-md-8 col-12 mx-auto">
-        <div class="card z-index-0 fadeIn3 fadeInBottom">
-          <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
-            <div class="bg-gradient-primary shadow-primary border-radius-lg py-3 pe-1">
-              <h1 class="text-white font-weight-bolder text-center mt-2 mb-0">Welcome!</h1>
-              <p class="text-white text-center mb-1">Sign in to continue to your lesson planner.</p>
-            </div>
-          </div>
-          <div class="card-body">
-            {% if messages %}
-              {% for message in messages %}
-                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} text-white"
-                     role="alert">{{ message }}</div>
-              {% endfor %}
-            {% endif %}
-            <form role="form" method="post" action="{% url 'home:login' %}" class="text-start" novalidate>
-              {% csrf_token %}
-              <div class="mb-3">
-                <label class="form-label" for="id_username">Username</label>
-                <div class="input-group input-group-outline">
-                  <input type="text" name="username" id="id_username" class="form-control"
-                         placeholder="Your username" autocomplete="username" required>
-                </div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label" for="id_password">Password</label>
-                <div class="input-group input-group-outline">
-                  <input type="password" name="password" id="id_password" class="form-control"
-                         placeholder="Your password" autocomplete="current-password" required>
-                </div>
-              </div>
-              <div class="form-check form-switch d-flex align-items-center mb-3">
-                <input class="form-check-input" type="checkbox" id="rememberMe" name="remember_me">
-                <label class="form-check-label mb-0 ms-3" for="rememberMe">Remember me</label>
-              </div>
-              <div class="text-center">
-                <button type="submit" class="btn bg-gradient-primary w-100 my-4 mb-2">Sign in</button>
-              </div>
-              <p class="mt-2 text-sm text-center">
-                Forgot your password?
-                <a href="{% url 'home:password_reset' %}" class="text-primary text-gradient font-weight-bold">Reset it here</a>
-              </p>
-              <p class="mt-1 text-sm text-center">
-                Don't have an account?
-                <a href="{% url 'home:signup' %}" class="text-primary text-gradient font-weight-bold">Sign up</a>
-              </p>
-            </form>
+  <div class="container py-8 position-relative">
+    <div class="row align-items-center">
+      <div class="col-lg-7">
+        <h1 class="display-4 text-white mb-3">Build Better Lessons with AI Support</h1>
+        <p class="lead text-white-50 mb-4">
+          Lesson Builder AI helps educators design lesson plans faster, organize teaching resources, and align instruction with curriculum goals from one workspace.
+        </p>
+        <div class="d-flex flex-wrap gap-2">
+          <a href="{% url 'home:signup' %}" class="btn bg-gradient-primary btn-lg mb-2">Get Started Free</a>
+          <a href="{% url 'home:login' %}" class="btn btn-outline-white btn-lg mb-2">Log in</a>
+        </div>
+      </div>
+      <div class="col-lg-5 mt-5 mt-lg-0">
+        <div class="card landing-card shadow-lg border-0">
+          <div class="card-body p-4">
+            <h3 class="mb-3">Why educators choose Lesson Builder AI</h3>
+            <ul class="text-sm text-dark ps-3 mb-0">
+              <li class="mb-2">Generate lesson ideas and refine objectives with AI assistance.</li>
+              <li class="mb-2">Centralize curriculum docs, resources, and materials.</li>
+              <li class="mb-2">Track lesson schedules and plan by date in a calendar view.</li>
+              <li>Keep everything organized in one secure teaching dashboard.</li>
+            </ul>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
+</header>
+
+<section id="features" class="py-6">
+  <div class="container">
+    <div class="row mb-5">
+      <div class="col-lg-8 mx-auto text-center">
+        <h2 class="mb-3">Core Features</h2>
+        <p class="text-lg mb-0">
+          Everything you need to plan, improve, and manage instruction from first draft to classroom delivery.
+        </p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+          <div class="card-body">
+            <div class="feature-icon bg-gradient-primary text-white mb-3">
+              <i class="material-icons-round">auto_awesome</i>
+            </div>
+            <h5>AI Lesson Planning</h5>
+            <p class="text-sm mb-0">
+              Draft and improve lesson plans with AI prompts designed for teachers and instructional goals.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+          <div class="card-body">
+            <div class="feature-icon bg-gradient-info text-white mb-3">
+              <i class="material-icons-round">folder_open</i>
+            </div>
+            <h5>Curriculum & Resources</h5>
+            <p class="text-sm mb-0">
+              Keep curriculum files, links, and teaching materials organized and connected to your plans.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+          <div class="card-body">
+            <div class="feature-icon bg-gradient-success text-white mb-3">
+              <i class="material-icons-round">calendar_month</i>
+            </div>
+            <h5>Calendar Scheduling</h5>
+            <p class="text-sm mb-0">
+              Coordinate daily instruction with lesson dates and visual planning to stay on track.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-6 bg-gray-100">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 mx-auto text-center">
+        <h3 class="mb-3">Ready to streamline your lesson planning?</h3>
+        <p class="mb-4">Create an account to start building smarter, faster lesson workflows.</p>
+        <a href="{% url 'home:signup' %}" class="btn bg-gradient-primary me-2">Sign up now</a>
+        <a href="{% url 'home:login' %}" class="btn btn-outline-dark">Log in</a>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
 {% endblock %}

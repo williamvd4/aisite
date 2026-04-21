@@ -373,3 +373,20 @@ class SignupViewTest(TestCase):
         response = self.client.post(reverse('home:signup'), data)
         self.assertEqual(response.status_code, 200)
         self.assertFalse(User.objects.filter(username='').exists())
+
+
+class PublicLandingViewTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='landinguser', password='pw')
+
+    def test_welcome_page_accessible_to_anonymous_users(self):
+        response = self.client.get(reverse('welcome'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Core Features')
+
+    def test_welcome_redirects_authenticated_user_to_dashboard(self):
+        self.client.login(username='landinguser', password='pw')
+        response = self.client.get(reverse('welcome'))
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('home:home'))
