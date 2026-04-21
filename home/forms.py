@@ -1,14 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth.models import User
-from .models import MyFormModel, LessonPlan, Subject, Grade, Standard, Material, Resource, Curriculum
-
-
-class MyForm(forms.ModelForm):
-    """Legacy form - keeping for backward compatibility"""
-    class Meta:
-        model = MyFormModel
-        fields = '__all__'
+from .models import LessonPlan, Subject, Grade, Standard, Material, Resource, Curriculum
 
 
 class LessonPlanForm(forms.ModelForm):
@@ -145,8 +138,8 @@ class CustomUserCreationForm(UserCreationForm):
 
 class LessonSearchForm(forms.Form):
     """Form for searching and filtering lessons"""
-    query = forms.CharField(
-        max_length=200, 
+    title = forms.CharField(
+        max_length=200,
         required=False,
         widget=forms.TextInput(attrs={
             'class': 'form-control',

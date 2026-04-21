@@ -1,20 +1,7 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
-from .models import Lesson, LessonPlan, Material, Resource, Curriculum, Subject, Grade
-
-class LessonModelTest(TestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(username='testuser', password='testpass123')
-
-    def test_lesson_creation(self):
-        lesson = Lesson.objects.create(
-            title="Test Lesson",
-            description="A test description.",
-            user=self.user
-        )
-        self.assertEqual(lesson.title, "Test Lesson")
-        self.assertEqual(lesson.user.username, "testuser")
+from .models import LessonPlan, Material, Resource, Curriculum, Subject, Grade
 
 class MaterialModelTest(TestCase):
     def setUp(self):
