@@ -152,6 +152,9 @@ document.getElementById('ai-chat-form').addEventListener('submit', function(e) {
   .then(data => {
     removeLoadingMessage(loadingId);
     askBtn.disabled = false;
+    if (data.extraction_warnings && data.extraction_warnings.length) {
+      appendMessage('System', data.extraction_warnings.join('\n'));
+    }
     if (data.ai_response) {
       appendMessage('AI', data.ai_response);
     } else {

@@ -11,18 +11,57 @@ from django.db.models import Q
 from django.conf import settings
 import json
 import os
+import logging
 
 from .forms import (LessonPlanForm, MaterialForm, ResourceForm, CurriculumForm,
                    CustomUserCreationForm, LessonSearchForm, UserProfileForm)
 from .models import (LessonPlan, Material, Resource, Curriculum,
-                    Subject, Grade, Standard, LessonSchedule)
+                     Subject, Grade, Standard, LessonSchedule)
 from .ai.ai_review import review_lesson, generate_ai_response
-from .ai.ai_utils import extract_text_from_pdf # Only import extract_text_from_pdf
+from .ai.ai_utils import (
+    extract_text_from_file,
+    SUPPORTED_CURRICULUM_EXTENSIONS,
+    SUPPORTED_CURRICULUM_MIME_TYPES,
+)
+
+logger = logging.getLogger(__name__)
 
 # Allowed MIME types and extensions for curriculum uploads
-_ALLOWED_CURRICULUM_TYPES = {'application/pdf'}
-_ALLOWED_CURRICULUM_EXTENSIONS = {'.pdf'}
+_ALLOWED_CURRICULUM_TYPES = SUPPORTED_CURRICULUM_MIME_TYPES
+_ALLOWED_CURRICULUM_EXTENSIONS = SUPPORTED_CURRICULUM_EXTENSIONS
 _MAX_CURRICULUM_SIZE_BYTES = 20 * 1024 * 1024  # 20 MB
+_CURRICULUM_CONTENT_TYPES_LENIENT = {"application/octet-stream", ""}
+
+
+def _build_curriculum_context(user, selected_curriculum_ids):
+    context_parts = []
+    extraction_warnings = []
+    if not selected_curriculum_ids:
+        return "", extraction_warnings
+
+    selected_curriculums = Curriculum.objects.filter(user=user, id__in=selected_curriculum_ids)
+    for curriculum_doc in selected_curriculums:
+        if not curriculum_doc.file:
+            continue
+        try:
+            with curriculum_doc.file.open('rb') as file_stream:
+                extracted = extract_text_from_file(
+                    file_stream,
+                    curriculum_doc.file.name or curriculum_doc.title,
+                    content_type=getattr(curriculum_doc.file.file, "content_type", None),
+                )
+            if extracted:
+                context_parts.append(f"\n\n--- From Curriculum: {curriculum_doc.title} ---\n{extracted}")
+        except ValueError as exc:
+            warning = f"Could not use '{curriculum_doc.title}': {exc}"
+            logger.warning(warning)
+            extraction_warnings.append(warning)
+        except Exception:
+            warning = f"Could not use '{curriculum_doc.title}': extraction failed unexpectedly."
+            logger.error(warning)
+            extraction_warnings.append(warning)
+
+    return "".join(context_parts), extraction_warnings
 
 
 def home(request):
@@ -133,17 +172,7 @@ def createnewlesson(request):
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             user_input = request.POST.get("ai_input", "")
             selected_curriculum_ids = request.POST.getlist("curriculum_ids[]") # Get selected curriculum IDs
-            
-            context_text = ""
-            if selected_curriculum_ids:
-                selected_curriculums = Curriculum.objects.filter(user=request.user, id__in=selected_curriculum_ids)
-                for curriculum_doc in selected_curriculums:
-                    if curriculum_doc.file:
-                        # Make sure the file is opened in binary mode for PyPDF2
-                        with curriculum_doc.file.open('rb') as f:
-                            extracted = extract_text_from_pdf(f)
-                            if extracted:
-                                context_text += f"\n\n--- From Curriculum: {curriculum_doc.title} ---\n{extracted}"
+            context_text, extraction_warnings = _build_curriculum_context(request.user, selected_curriculum_ids)
             
             full_prompt = user_input
             if context_text:
@@ -155,7 +184,7 @@ def createnewlesson(request):
                 user=request.user,
                 used_curriculum_context=bool(context_text),
             )
-            return JsonResponse({"ai_response": ai_response})
+            return JsonResponse({"ai_response": ai_response, "extraction_warnings": extraction_warnings})
         
         # Handle lesson creation
         form = LessonPlanForm(request.POST, user=request.user)
@@ -186,16 +215,7 @@ def edit_lesson(request, pk):
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             user_input = request.POST.get("ai_input", "")
             selected_curriculum_ids = request.POST.getlist("curriculum_ids[]")
-            
-            context_text = ""
-            if selected_curriculum_ids:
-                selected_curriculums = Curriculum.objects.filter(user=request.user, id__in=selected_curriculum_ids)
-                for curriculum_doc in selected_curriculums:
-                    if curriculum_doc.file:
-                        with curriculum_doc.file.open('rb') as f:
-                            extracted = extract_text_from_pdf(f)
-                            if extracted:
-                                context_text += f"\n\n--- From Curriculum: {curriculum_doc.title} ---\n{extracted}"
+            context_text, extraction_warnings = _build_curriculum_context(request.user, selected_curriculum_ids)
             
             full_prompt = user_input
             if context_text:
@@ -207,7 +227,7 @@ def edit_lesson(request, pk):
                 user=request.user,
                 used_curriculum_context=bool(context_text),
             )
-            return JsonResponse({"ai_response": ai_response})
+            return JsonResponse({"ai_response": ai_response, "extraction_warnings": extraction_warnings})
 
         form = LessonPlanForm(request.POST, instance=lesson, user=request.user)
         if form.is_valid():
@@ -464,20 +484,22 @@ def upload_curriculum(request):
     """Upload curriculum file with type/size validation."""
     uploaded_file = request.FILES.get("file")
     if not uploaded_file:
-        return JsonResponse({"error": "No file provided. Please choose a PDF file to upload."}, status=400)
+        return JsonResponse({"error": "No file provided. Please choose a supported file to upload."}, status=400)
 
     # Validate file extension
     _, ext = os.path.splitext(uploaded_file.name.lower())
     if ext not in _ALLOWED_CURRICULUM_EXTENSIONS:
+        supported = ", ".join(sorted(_ALLOWED_CURRICULUM_EXTENSIONS))
         return JsonResponse(
-            {"error": "Only PDF files are accepted. Please upload a .pdf file."},
+            {"error": f"Unsupported file type. Please upload one of: {supported}."},
             status=400,
         )
 
     # Validate MIME type (from browser-reported content type)
-    if uploaded_file.content_type not in _ALLOWED_CURRICULUM_TYPES:
+    content_type = (uploaded_file.content_type or "").lower()
+    if content_type not in _ALLOWED_CURRICULUM_TYPES and content_type not in _CURRICULUM_CONTENT_TYPES_LENIENT:
         return JsonResponse(
-            {"error": "The file does not appear to be a valid PDF. Please upload a proper PDF file."},
+            {"error": "The uploaded file type does not match a supported curriculum format."},
             status=400,
         )
 

@@ -2,6 +2,7 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
 from unittest.mock import patch, MagicMock
+import io
 from .models import LessonPlan, Material, Resource, Curriculum, Subject, Grade, AIUsageLog
 
 
@@ -219,9 +220,75 @@ class CurriculumUploadTest(TestCase):
         from django.core.files.uploadedfile import SimpleUploadedFile
         f = SimpleUploadedFile('test.txt', b'hello', content_type='text/plain')
         response = self.client.post(reverse('home:upload_curriculum'), {'file': f})
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn('message', data)
+
+    def test_upload_unsupported_extension(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        f = SimpleUploadedFile('test.exe', b'hello', content_type='application/octet-stream')
+        response = self.client.post(reverse('home:upload_curriculum'), {'file': f})
         self.assertEqual(response.status_code, 400)
         data = response.json()
-        self.assertIn('PDF', data['error'])
+        self.assertIn('Unsupported', data['error'])
+
+    def test_upload_supported_docx(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        f = SimpleUploadedFile(
+            'test.docx',
+            b'fake-docx',
+            content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        )
+        response = self.client.post(reverse('home:upload_curriculum'), {'file': f})
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn('message', data)
+
+
+class FileExtractionUtilsTest(TestCase):
+    def test_extract_text_from_txt(self):
+        from home.ai.ai_utils import extract_text_from_file
+
+        stream = io.BytesIO(b'line one\nline two')
+        extracted = extract_text_from_file(stream, 'sample.txt', 'text/plain')
+        self.assertIn('line one', extracted)
+
+    @patch('home.ai.ai_utils.extract_text_from_pdf', return_value='pdf-content')
+    def test_extract_pdf_routes_to_pdf_extractor(self, mock_pdf):
+        from home.ai.ai_utils import extract_text_from_file
+
+        extracted = extract_text_from_file(io.BytesIO(b'%PDF-1.4'), 'sample.pdf', 'application/pdf')
+        self.assertEqual(extracted, 'pdf-content')
+        mock_pdf.assert_called_once()
+
+    @patch('home.ai.ai_utils._extract_text_from_docx', return_value='docx-content')
+    def test_extract_docx_routes_to_docx_extractor(self, _):
+        from home.ai.ai_utils import extract_text_from_file
+
+        extracted = extract_text_from_file(io.BytesIO(b'x'), 'sample.docx')
+        self.assertEqual(extracted, 'docx-content')
+
+    @patch('home.ai.ai_utils._extract_text_from_pptx', return_value='pptx-content')
+    def test_extract_pptx_routes_to_pptx_extractor(self, _):
+        from home.ai.ai_utils import extract_text_from_file
+
+        extracted = extract_text_from_file(io.BytesIO(b'x'), 'sample.pptx')
+        self.assertEqual(extracted, 'pptx-content')
+
+    @patch('home.ai.ai_utils._extract_text_from_image', return_value='image-content')
+    def test_extract_image_routes_to_ocr(self, _):
+        from home.ai.ai_utils import extract_text_from_file
+
+        extracted = extract_text_from_file(io.BytesIO(b'x'), 'sample.png')
+        self.assertEqual(extracted, 'image-content')
+
+    @patch('home.ai.ai_utils.textract', None)
+    def test_extract_unsupported_type_fails_cleanly(self):
+        from home.ai.ai_utils import extract_text_from_file
+
+        with self.assertRaises(ValueError) as exc:
+            extract_text_from_file(io.BytesIO(b'x'), 'sample.unsupported')
+        self.assertIn('unsupported', str(exc.exception).lower())
 
 
 class AIPromptGuardrailTest(TestCase):
