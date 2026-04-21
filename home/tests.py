@@ -313,7 +313,7 @@ class PublicLandingViewTest(TestCase):
         self.client = Client()
         self.user = User.objects.create_user(username='landinguser', password='pw')
 
-    def test_welcome_is_public_for_anonymous_user(self):
+    def test_welcome_page_accessible_to_anonymous_users(self):
         response = self.client.get(reverse('welcome'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Core Features')
