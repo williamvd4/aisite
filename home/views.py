@@ -97,8 +97,6 @@ def home(request):
 
 
 def welcome(request):
-    if request.user.is_authenticated:
-        return redirect(reverse('home:home'))
     return render(request, 'pages/welcome.html')
 
 

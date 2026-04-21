@@ -6,9 +6,9 @@ from home import views as home_views # Add this line
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path('', home_views.welcome, name='welcome'), # Change this line
-    path("home/", include('home.urls')), # Add this line to include home.urls under /home/
-    path("", include('theme_material_kit.urls')),
+    path("", home_views.welcome, name="welcome"),
+    path("home/", include('home.urls')),
+    path("theme/", include('theme_material_kit.urls')),
 ]
 
 # Add this block to serve media files during development
