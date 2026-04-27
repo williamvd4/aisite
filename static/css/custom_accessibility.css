@@ -1,3 +1,51 @@
-/* Legacy entrypoint preserved for backwards compatibility.
-   Source of truth now lives in frontend/src/styles.css and is bundled to static/dist. */
-@import url('/static/dist/assets/app.css');
+/* Additional accessibility and consistent layout overrides */
+
+.invalid-feedback {
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+.input-group-static.is-invalid > label {
+    color: #d81b60 !important;
+}
+
+.input-group-static.is-invalid > .form-control {
+    border-bottom: 1px solid #d81b60 !important;
+}
+
+/* Ensure consistent card heights in grids */
+.card-grid .card {
+    height: 100%;
+}
+
+/* Mobile responsiveness improvements */
+@media (max-width: 767.98px) {
+    .mx-lg-5 {
+        margin-left: 1rem !important;
+        margin-right: 1rem !important;
+    }
+
+    .px-lg-5 {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+}
+
+/* AI Assistant specific styles */
+#ai-chat-history .message {
+    padding: 8px 12px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    max-width: 85%;
+}
+
+#ai-chat-history .user-message {
+    background-color: #f0f2f5;
+    align-self: flex-end;
+    margin-left: auto;
+}
+
+#ai-chat-history .ai-message {
+    background-color: #e3f2fd;
+    align-self: flex-start;
+}

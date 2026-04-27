@@ -21,7 +21,6 @@
 <!-- CSS Files -->
 <link id="pagestyle" href="{% static 'css/material-kit.css' %}" rel="stylesheet" />
 <link href="{% static 'css/custom_accessibility.css' %}" rel="stylesheet" />
-<link href="{% static 'dist/assets/app.css' %}" rel="stylesheet" />
 
 <!-- FullCalendar CSS -->
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet">
@@ -36,34 +35,7 @@
     {% include 'includes/navigation.html' %}
   {% endblock header %}
 
-  <!-- Django messages toast container -->
-  {% if messages %}
-  <div aria-live="polite" aria-atomic="true"
-       style="position: fixed; top: 1rem; right: 1rem; z-index: 1100; min-width: 280px;">
-    {% for message in messages %}
-    <div class="toast show align-items-center text-white border-0 mb-2
-                {% if message.tags == 'error' %}bg-gradient-danger
-                {% elif message.tags == 'success' %}bg-gradient-success
-                {% elif message.tags == 'warning' %}bg-gradient-warning
-                {% else %}bg-gradient-info{% endif %}"
-         role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="4000">
-      <div class="d-flex">
-        <div class="toast-body">{{ message }}</div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                data-bs-dismiss="toast" aria-label="Close"></button>
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      document.querySelectorAll('.toast').forEach(function (el) {
-        var delay = parseInt(el.dataset.bsDelay || 4000);
-        setTimeout(function () { el.style.opacity = '0'; setTimeout(function () { el.remove(); }, 500); }, delay);
-      });
-    });
-  </script>
-  {% endif %}
+  {% include 'includes/messages.html' %}
 
   <div class="mx-lg-5 mx-md-3 mx-sm-1 px-lg-5 px-md-3 px-sm-0">
 
@@ -77,6 +49,7 @@
   {% endblock footer %}
 
   {% include 'includes/scripts.html' %}
+  <script src="{% static 'js/main.js' %}"></script>
 
   {% block javascripts %}{% endblock javascripts %}
 
