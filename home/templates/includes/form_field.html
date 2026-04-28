@@ -1,0 +1,14 @@
+{% if field %}
+<div class="input-group input-group-static mb-4 {% if field.errors %}is-invalid{% endif %}">
+    <label for="{{ field.id_for_label }}" class="ms-0">{{ field.label }}</label>
+    {{ field }}
+    {% if field.help_text %}
+    <span class="form-text text-muted ms-0 small">{{ field.help_text|safe }}</span>
+    {% endif %}
+    {% for error in field.errors %}
+    <div class="invalid-feedback d-block">
+        {{ error }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}

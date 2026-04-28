@@ -1,0 +1,11 @@
+<div class="text-center py-5">
+    <div class="icon icon-shape icon-lg bg-gradient-info shadow text-center border-radius-xl mt-n3 mx-auto">
+        <i class="material-icons opacity-10">info_outline</i>
+    </div>
+    <h4 class="mt-4 text-secondary">{{ message|default:"No items found." }}</h4>
+    {% if action_url %}
+    <a href="{{ action_url }}" class="btn btn-info btn-sm mt-3">
+        {{ action_text|default:"Add New" }}
+    </a>
+    {% endif %}
+</div>

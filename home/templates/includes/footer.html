@@ -1,0 +1,29 @@
+<footer class="footer py-5 mt-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 mb-4 mx-auto text-center">
+        <a href="{% url 'home:home' %}" class="text-secondary me-xl-5 me-3 mb-sm-0 mb-2">
+          Dashboard
+        </a>
+        <a href="{% url 'home:mylessonplans' %}" class="text-secondary me-xl-5 me-3 mb-sm-0 mb-2">
+          Lessons
+        </a>
+        <a href="{% url 'home:myresources' %}" class="text-secondary me-xl-5 me-3 mb-sm-0 mb-2">
+          Resources
+        </a>
+        <a href="{% url 'home:mycurriculums' %}" class="text-secondary me-xl-5 me-3 mb-sm-0 mb-2">
+          Curriculums
+        </a>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-8 mx-auto text-center mt-1">
+        <p class="mb-0 text-secondary">
+          Copyright © <script>
+            document.write(new Date().getFullYear())
+          </script> Lesson Builder AI.
+        </p>
+      </div>
+    </div>
+  </div>
+</footer>
