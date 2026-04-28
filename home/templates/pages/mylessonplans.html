@@ -49,7 +49,7 @@
         <div class="card-body">
             <form method="get" action="{% url 'home:mylessonplans' %}">
                 <div class="row">
-                    <div class="col-md-4 mb-3">
+                    <div class="col-md-3 mb-3">
                         {{ search_form.title.label_tag }}
                         {{ search_form.title }}
                     </div>
@@ -57,9 +57,13 @@
                         {{ search_form.subject.label_tag }}
                         {{ search_form.subject }}
                     </div>
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-2 mb-3">
                         {{ search_form.grade.label_tag }}
                         {{ search_form.grade }}
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label>Status</label>
+                        {{ search_form.status }}
                     </div>
                     <div class="col-md-2 mb-3 d-flex align-items-end">
                         <button type="submit" class="btn btn-info w-100">Search</button>
@@ -90,6 +94,8 @@
                                     <div class="d-flex flex-column justify-content-center">
                                         <h6 class="mb-0 text-xs">
                                             <a href="{% url 'home:lesson_detail' lesson.pk %}">{{ lesson.title }}</a>
+                                            {% if lesson.is_draft %}<span class="badge bg-warning text-dark ms-1">Draft</span>{% endif %}
+                                            {% if lesson.is_archived %}<span class="badge bg-secondary ms-1">Archived</span>{% endif %}
                                         </h6>
                                     </div>
                                 </div>
@@ -110,6 +116,13 @@
                                 <a href="{% url 'home:edit_lesson' lesson.pk %}" class="btn btn-link text-dark px-2 mb-0">
                                     <i class="material-icons opacity-10">edit</i> Edit
                                 </a>
+                                <form method="post" action="{% url 'home:archive_lesson' lesson.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-link text-secondary px-2 mb-0">
+                                        <i class="material-icons opacity-10">{% if lesson.is_archived %}unarchive{% else %}archive{% endif %}</i>
+                                        {% if lesson.is_archived %}Unarchive{% else %}Archive{% endif %}
+                                    </button>
+                                </form>
                                 <a href="{% url 'home:delete_lesson' lesson.pk %}" class="btn btn-link text-danger px-2 mb-0">
                                     <i class="material-icons opacity-10">delete</i> Delete
                                 </a>

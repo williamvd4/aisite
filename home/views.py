@@ -1,7 +1,10 @@
+from datetime import timedelta
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse # Added for redirecting with reverse
 from django import forms
 from django.http import HttpResponse, JsonResponse
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
@@ -67,12 +70,22 @@ def _build_curriculum_context(user, selected_curriculum_ids):
 def home(request):
     """Enhanced home page with dashboard data"""
     if not request.user.is_authenticated:
-        return redirect(reverse('home:welcome')) # Redirect to welcome page if not logged in
+        return redirect(reverse('home:welcome'))
 
-    recent_lessons = LessonPlan.objects.filter(user=request.user)[:5]
+    today = timezone.now().date()
+    recent_lessons = LessonPlan.objects.filter(user=request.user, is_archived=False)[:5]
     total_lessons = LessonPlan.objects.filter(user=request.user).count()
     total_materials = Material.objects.filter(user=request.user).count()
     total_resources = Resource.objects.filter(user=request.user).count()
+    upcoming_lessons = LessonPlan.objects.filter(
+        user=request.user,
+        lesson_date__gte=today,
+        lesson_date__lte=today + timedelta(days=7),
+        is_archived=False,
+    ).order_by('lesson_date')[:5]
+    draft_lessons = LessonPlan.objects.filter(
+        user=request.user, is_draft=True, is_archived=False
+    ).order_by('-updated_at')[:3]
 
     # Prepare calendar events
     lesson_plans_for_calendar = LessonPlan.objects.filter(user=request.user, lesson_date__isnull=False)
@@ -84,19 +97,23 @@ def home(request):
             'url': reverse('home:lesson_detail', args=[lesson.pk]),
             'allDay': True
         })
-    
+
     context = {
         'recent_lessons': recent_lessons,
         'total_lessons': total_lessons,
         'total_materials': total_materials,
         'total_resources': total_resources,
-        'calendar_events': json.dumps(calendar_events) # Add events to context
+        'upcoming_lessons': upcoming_lessons,
+        'draft_lessons': draft_lessons,
+        'calendar_events': json.dumps(calendar_events)
     }
-    
+
     return render(request, "pages/home.html", context)
 
 
 def welcome(request):
+    if request.user.is_authenticated:
+        return redirect(reverse('home:home'))
     return render(request, 'pages/welcome.html')
 
 
@@ -104,17 +121,17 @@ def welcome(request):
 def mylessonplans(request):
     """Enhanced lesson plans listing with search and filtering"""
     form = LessonSearchForm(request.GET)
-    lessons_query = LessonPlan.objects.filter(user=request.user) # Renamed for clarity
-    
+    lessons_query = LessonPlan.objects.filter(user=request.user)
+
     if form.is_valid():
-        title_query = form.cleaned_data.get('title') # Changed from query to title_query
+        title_query = form.cleaned_data.get('title')
         subject = form.cleaned_data.get('subject')
         grade = form.cleaned_data.get('grade')
-        # duration = form.cleaned_data.get('duration') # Duration filter was removed from form
-        
+        status = form.cleaned_data.get('status')
+
         if title_query:
             lessons_query = lessons_query.filter(
-                Q(title__icontains=title_query) | 
+                Q(title__icontains=title_query) |
                 Q(description__icontains=title_query) |
                 Q(learning_objectives__icontains=title_query)
             )
@@ -122,15 +139,25 @@ def mylessonplans(request):
             lessons_query = lessons_query.filter(subject=subject)
         if grade:
             lessons_query = lessons_query.filter(grade=grade)
-        # if duration:
-        #     lessons_query = lessons_query.filter(duration=duration)
-    
+
+        if status == 'archived':
+            lessons_query = lessons_query.filter(is_archived=True)
+        elif status == 'draft':
+            lessons_query = lessons_query.filter(is_draft=True, is_archived=False)
+        elif status == 'published':
+            lessons_query = lessons_query.filter(is_draft=False, is_archived=False)
+        else:
+            # Default: exclude archived
+            lessons_query = lessons_query.filter(is_archived=False)
+    else:
+        lessons_query = lessons_query.filter(is_archived=False)
+
     # Pagination
     paginator = Paginator(lessons_query.order_by('-updated_at'), 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    # Prepare calendar events (using the potentially filtered queryset)
+    # Prepare calendar events
     lesson_plans_for_calendar = lessons_query.filter(lesson_date__isnull=False)
     calendar_events = []
     for lesson in lesson_plans_for_calendar:
@@ -140,13 +167,13 @@ def mylessonplans(request):
             'url': reverse('home:lesson_detail', args=[lesson.pk]),
             'allDay': True
         })
-    
+
     return render(request, "pages/mylessonplans.html", {
         'page_obj': page_obj,
         'search_form': form,
         'lesson_plans': page_obj.object_list,
         'is_paginated': page_obj.has_other_pages(),
-        'calendar_events': json.dumps(calendar_events) # Add events to context
+        'calendar_events': json.dumps(calendar_events)
     })
 
 
@@ -200,7 +227,7 @@ def createnewlesson(request):
 
     # Pass all user's curriculums to the template for the AI chat selection
     user_curriculums = Curriculum.objects.filter(user=request.user)
-    return render(request, "pages/createnewlesson.html", {"form": form, "user_curriculums": user_curriculums})
+    return render(request, "pages/lesson_plan_form.html", {"form": form, "user_curriculums": user_curriculums})
 
 
 @login_required
@@ -275,6 +302,92 @@ def delete_lesson(request, pk):
         return redirect('home:mylessonplans') # Added namespace
     
     return render(request, "pages/lesson_plan_confirm_delete.html", {"lesson_plan": lesson}) # Changed template and context variable
+
+
+@login_required
+@require_POST
+def autosave_lesson(request, pk=None):
+    """Autosave lesson plan draft via AJAX"""
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({'status': 'error', 'message': 'Invalid data'}, status=400)
+
+    if pk:
+        lesson = get_object_or_404(LessonPlan, pk=pk, user=request.user)
+    else:
+        lesson = LessonPlan(user=request.user, is_draft=True)
+
+    # Require minimum fields before saving
+    title = data.get('title', '').strip()
+    subject_val = data.get('subject', '')
+    grade_val = data.get('grade', '')
+    if not title or not subject_val or not grade_val:
+        return JsonResponse({'status': 'not_ready', 'message': 'Fill in title, subject and grade to enable autosave'})
+
+    autosave_fields = [
+        'title', 'description', 'learning_objectives', 'essential_question',
+        'materials_needed', 'opening_activity', 'main_instruction',
+        'guided_practice', 'independent_practice', 'closing_activity',
+        'formative_assessment', 'summative_assessment', 'differentiation_strategies',
+        'homework_assignment', 'extension_activities', 'reflection_notes'
+    ]
+
+    changed = False
+    for field in autosave_fields:
+        if field in data:
+            current_val = getattr(lesson, field, '')
+            new_val = data[field]
+            if current_val != new_val:
+                setattr(lesson, field, new_val)
+                changed = True
+
+    # Handle FK fields
+    try:
+        from .models import Subject as SubjectModel
+        lesson.subject_id = int(subject_val)
+        changed = True
+    except (ValueError, TypeError):
+        return JsonResponse({'status': 'not_ready', 'message': 'Invalid subject'})
+    try:
+        from .models import Grade as GradeModel
+        lesson.grade_id = int(grade_val)
+        changed = True
+    except (ValueError, TypeError):
+        return JsonResponse({'status': 'not_ready', 'message': 'Invalid grade'})
+    if 'duration' in data and data['duration']:
+        try:
+            lesson.duration = int(data['duration'])
+            changed = True
+        except (ValueError, TypeError):
+            pass
+
+    if changed:
+        if not lesson.pk:
+            lesson.is_draft = True
+        try:
+            lesson.save()
+        except Exception as exc:
+            logger.exception("Autosave failed: %s", exc)
+            return JsonResponse({'status': 'error', 'message': 'Save failed'}, status=500)
+
+    return JsonResponse({
+        'status': 'ok',
+        'pk': lesson.pk,
+        'saved_at': lesson.updated_at.strftime('%H:%M:%S') if lesson.pk else None,
+    })
+
+
+@login_required
+@require_POST
+def archive_lesson(request, pk):
+    """Toggle archive status of a lesson plan"""
+    lesson = get_object_or_404(LessonPlan, pk=pk, user=request.user)
+    lesson.is_archived = not lesson.is_archived
+    lesson.save(update_fields=['is_archived'])
+    action = "archived" if lesson.is_archived else "unarchived"
+    messages.success(request, f"Lesson '{lesson.title}' {action}.")
+    return redirect('home:mylessonplans')
 
 
 @login_required

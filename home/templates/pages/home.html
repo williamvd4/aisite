@@ -47,6 +47,26 @@
         </div>
     </div>
 
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex flex-wrap gap-2 justify-content-center">
+                <a href="{% url 'home:createnewlesson' %}" class="btn btn-primary">
+                    <i class="material-icons opacity-10">add</i> New Lesson
+                </a>
+                <a href="{% url 'home:myresources' %}" class="btn btn-outline-info">
+                    <i class="material-icons opacity-10">folder_open</i> My Resources
+                </a>
+                <a href="{% url 'home:mycalendar' %}" class="btn btn-outline-secondary">
+                    <i class="material-icons opacity-10">calendar_month</i> My Calendar
+                </a>
+                <a href="{% url 'home:mycurriculums' %}" class="btn btn-outline-success">
+                    <i class="material-icons opacity-10">menu_book</i> My Curriculums
+                </a>
+            </div>
+        </div>
+    </div>
+
     <!-- Statistics Section -->
     <section class="pt-3 pb-4" id="count-stats">
         <div class="container">
@@ -76,7 +96,38 @@
         </div>
     </section>
 
-    <div class="row mt-4">
+    {% if draft_lessons %}
+    <!-- Continue Drafts Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow border-warning">
+                <div class="card-header p-3 bg-warning bg-opacity-10">
+                    <h5 class="mb-0"><i class="material-icons opacity-10 me-2">edit_note</i>Continue Where You Left Off</h5>
+                </div>
+                <div class="card-body p-3">
+                    <div class="row">
+                        {% for draft in draft_lessons %}
+                        <div class="col-md-4 mb-2">
+                            <div class="card border-0 bg-light">
+                                <div class="card-body p-2">
+                                    <h6 class="mb-1">
+                                        <a href="{% url 'home:edit_lesson' draft.pk %}">{{ draft.title }}</a>
+                                        <span class="badge bg-warning text-dark ms-1">Draft</span>
+                                    </h6>
+                                    <small class="text-muted">{{ draft.subject.name }} · {{ draft.grade.level }}</small><br>
+                                    <small class="text-muted">Last edited {{ draft.updated_at|date:"M d" }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row mt-2">
         <!-- Recent Lesson Plans Section -->
         <div class="col-lg-7 mb-4">
             <div class="card shadow-lg">
@@ -97,13 +148,35 @@
                             <a href="{% url 'home:mylessonplans' %}" class="btn btn-sm btn-outline-primary">View All Lesson Plans</a>
                         </div>
                     {% else %}
-                        <p class="text-center text-muted">You haven't created any lesson plans yet.</p>
-                        <div class="text-center">
-                            <a href="{% url 'home:createnewlesson' %}" class="btn btn-sm btn-primary">Create Your First Lesson Plan</a>
+                        <div class="text-center py-4">
+                            <i class="material-icons" style="font-size:3rem;color:#ccc;">description</i>
+                            <p class="lead mt-2">No lesson plans yet.</p>
+                            <p class="text-muted">Get started by creating your first lesson plan with AI assistance.</p>
+                            <a href="{% url 'home:createnewlesson' %}" class="btn btn-primary">
+                                <i class="material-icons opacity-10">add</i> Create Your First Lesson Plan
+                            </a>
                         </div>
                     {% endif %}
                 </div>
             </div>
+
+            {% if upcoming_lessons %}
+            <div class="card shadow-lg mt-4">
+                <div class="card-header p-3">
+                    <h5 class="mb-0"><i class="material-icons opacity-10 me-2">event</i>Upcoming This Week</h5>
+                </div>
+                <div class="card-body p-3">
+                    <ul class="list-group list-group-flush">
+                        {% for lesson in upcoming_lessons %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="{% url 'home:lesson_detail' lesson.pk %}">{{ lesson.title }}</a>
+                            <span class="badge bg-gradient-info rounded-pill">{{ lesson.lesson_date|date:"M d" }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Calendar Section -->

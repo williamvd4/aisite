@@ -26,7 +26,7 @@ class LessonPlanForm(forms.ModelForm):
             'opening_activity', 'main_instruction', 'guided_practice',
             'independent_practice', 'closing_activity',
             'formative_assessment', 'summative_assessment', 'differentiation_strategies',
-            'homework_assignment', 'extension_activities', 'standards', 'curriculums', 'is_public' # Added 'curriculums'
+            'homework_assignment', 'extension_activities', 'standards', 'curriculums', 'is_public', 'is_draft',
         ]
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter lesson title'}),
@@ -49,7 +49,8 @@ class LessonPlanForm(forms.ModelForm):
             'extension_activities': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Activities for early finishers (optional)'}),
             'standards': forms.CheckboxSelectMultiple(),
             'is_public': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'lesson_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control bg-light text-dark'}), # Added for contrast
+            'is_draft': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'lesson_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control bg-light text-dark'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -160,6 +161,16 @@ class LessonSearchForm(forms.Form):
     )
     duration = forms.ChoiceField(
         choices=[('', 'Any Duration')] + LessonPlan.DURATION_CHOICES,
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    status = forms.ChoiceField(
+        choices=[
+            ('', 'All Active'),
+            ('draft', 'Drafts'),
+            ('published', 'Published'),
+            ('archived', 'Archived'),
+        ],
         required=False,
         widget=forms.Select(attrs={'class': 'form-control'})
     )

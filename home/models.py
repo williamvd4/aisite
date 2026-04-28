@@ -84,6 +84,8 @@ class LessonPlan(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     is_public = models.BooleanField(default=False, help_text="Share with other teachers")
     is_template = models.BooleanField(default=False, help_text="Available as template")
+    is_draft = models.BooleanField(default=False, help_text="Save as draft instead of published")
+    is_archived = models.BooleanField(default=False, help_text="Archive this lesson plan")
     
     # Standards alignment
     standards = models.ManyToManyField(Standard, blank=True, related_name='lesson_plans')
