@@ -1,7 +1,10 @@
+from datetime import timedelta
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse # Added for redirecting with reverse
 from django import forms
 from django.http import HttpResponse, JsonResponse
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
@@ -68,9 +71,6 @@ def home(request):
     """Enhanced home page with dashboard data"""
     if not request.user.is_authenticated:
         return redirect(reverse('home:welcome'))
-
-    from django.utils import timezone
-    from datetime import timedelta
 
     today = timezone.now().date()
     recent_lessons = LessonPlan.objects.filter(user=request.user, is_archived=False)[:5]
