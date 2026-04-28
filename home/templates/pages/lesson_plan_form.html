@@ -11,54 +11,45 @@
 
 {% block body %} class="index-page bg-gray-200" {% endblock body %}
 
-{% block content %}
+{% block hero_title %}{% if form.instance.pk %}Edit Lesson Plan{% else %}Create New Lesson Plan{% endif %}{% endblock %}
+{% block hero_subtitle %}{% if form.instance.pk %}{{ form.instance.title }}{% else %}Build your lesson with AI assistance{% endif %}{% endblock %}
+
+{% block stylesheets %}
+{{ block.super }}
 <style>
-    .form-control,
-    .form-select {
+    /* Lesson plan form: ensure form inputs are clearly readable */
+    .lesson-plan-form .form-control,
+    .lesson-plan-form .form-select {
         background-color: #ffffff !important;
         color: #000000 !important;
         border: 1px solid #6c757d !important;
     }
-    .form-control::placeholder {
+    .lesson-plan-form .form-control::placeholder {
         color: #6c757d !important;
         opacity: 1;
     }
-    .form-control:focus,
-    .form-select:focus {
+    .lesson-plan-form .form-control:focus,
+    .lesson-plan-form .form-select:focus {
         background-color: #ffffff !important;
-        border-color: #007bff !important;
-        box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25) !important;
+        border-color: #1a73e8 !important;
+        box-shadow: 0 0 0 0.2rem rgba(26, 115, 232, 0.2) !important;
     }
-    .form-check-input:checked {
-        background-color: #007bff !important;
-        border-color: #007bff !important;
+    .lesson-plan-form .form-check-input:checked {
+        background-color: #1a73e8 !important;
+        border-color: #1a73e8 !important;
     }
-    label {
-        color: #000000 !important;
+    .lesson-plan-form label {
+        color: #344767 !important;
         font-weight: 600;
     }
-    .card {
-        border: 1px solid #dee2e6;
+    .lesson-plan-form h5.text-secondary {
+        color: #344767 !important;
     }
-    h5.text-secondary {
-        color: #343a40 !important;
-    }
-    /* AI Chat styles */
-    #chat-history {
-        min-height: 200px;
-    }
-    .ai-msg { background: #f0f7ff; border-left: 3px solid #007bff; }
-    .user-msg { background: #f8f9fa; border-left: 3px solid #6c757d; }
-    .chip-btn {
-        font-size: 0.78rem;
-        padding: 3px 10px;
-        border-radius: 20px;
-        cursor: pointer;
-        white-space: nowrap;
-    }
-    #save-status { font-size: 0.82rem; }
 </style>
-<div class="container mt-5 mb-5">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5 lesson-plan-form">
     <!-- Save status indicator -->
     <div class="d-flex align-items-center mb-2 gap-2">
         <span id="save-status" class="text-muted"></span>
@@ -299,10 +290,25 @@
 
     <!-- AI Chat column -->
     <div class="col-xxl-5 mt-4 mt-xxl-0">
-      <div id="ai-chat-popup" class="card card-raised my-0 d-flex flex-column"
-           style="height: 80vh; position: -webkit-sticky; position: sticky; top: 20px;"
+      <!-- Mobile toggle (hidden on xxl+) -->
+      <div class="d-xxl-none mb-2">
+        <button class="btn btn-outline-primary w-100" type="button"
+                data-bs-toggle="collapse" data-bs-target="#ai-panel-mobile-collapse"
+                aria-expanded="false" aria-controls="ai-panel-mobile-collapse">
+          <i class="material-icons opacity-10 me-1">smart_toy</i> AI Lesson Assistant ▾
+        </button>
+      </div>
+      <div id="ai-panel-mobile-collapse" class="collapse d-xxl-block">
+      <div id="ai-chat-popup" class="card card-raised my-0 d-flex flex-column ai-chat-panel"
            aria-label="AI lesson assistant">
-        <h2 class="text-center mb-0 p-3 border-bottom h5">🤖 AI Lesson Assistant</h2>
+        <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
+          <h5 class="mb-0">
+            <i class="material-icons opacity-10 me-1">smart_toy</i> AI Lesson Assistant
+          </h5>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="clearChatBtn" title="Clear chat history">
+            <i class="material-icons" style="font-size:1rem;vertical-align:middle;">delete_sweep</i>
+          </button>
+        </div>
 
         <div id="chat-history" class="p-3 flex-grow-1" style="overflow-y: auto;" aria-live="polite" aria-relevant="additions">
           <div class="mb-2 p-2 rounded ai-msg">
@@ -371,6 +377,7 @@
           </div>
         </form>
       </div>
+    </div><!-- end ai-panel-mobile-collapse -->
     </div><!-- end col-xxl-5 -->
 
     </div><!-- end row -->
@@ -583,6 +590,18 @@
   }
 
   function removeLoading(id) { const el = document.getElementById(id); if (el) el.remove(); }
+
+  // Clear chat button
+  const clearChatBtn = document.getElementById('clearChatBtn');
+  if (clearChatBtn) {
+    clearChatBtn.addEventListener('click', function() {
+      const history = document.getElementById('chat-history');
+      // Keep only the first welcome message
+      while (history.children.length > 1) {
+        history.removeChild(history.lastChild);
+      }
+    });
+  }
 }());
 </script>
 

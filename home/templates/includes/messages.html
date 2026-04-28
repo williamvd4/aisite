@@ -1,12 +1,42 @@
 {% if messages %}
-<div class="position-fixed top-2 end-2 z-index-3">
+<div aria-live="polite" aria-atomic="true"
+     style="position: fixed; top: 1rem; right: 1rem; z-index: 1100; min-width: 280px;"
+     id="django-messages-container">
   {% for message in messages %}
-  <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} alert-dismissible text-white fade show" role="alert">
-    <span class="text-sm">{{ message }}</span>
-    <button type="button" class="btn-close text-lg py-3 opacity-10" data-bs-dismiss="alert" aria-label="Close">
-      <span aria-hidden="true">&times;</span>
-    </button>
+  <div class="toast show align-items-center text-white border-0 mb-2
+              {% if message.tags == 'error' %}bg-gradient-danger
+              {% elif message.tags == 'success' %}bg-gradient-success
+              {% elif message.tags == 'warning' %}bg-gradient-warning
+              {% else %}bg-gradient-info{% endif %}"
+       role="alert" aria-live="assertive" aria-atomic="true"
+       data-bs-delay="5000">
+    <div class="d-flex">
+      <div class="toast-body">{{ message }}</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto"
+              data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
   </div>
   {% endfor %}
 </div>
+<script>
+  (function () {
+    function initMessages() {
+      var container = document.getElementById('django-messages-container');
+      if (!container) return;
+      container.querySelectorAll('.toast').forEach(function (el) {
+        var delay = parseInt(el.dataset.bsDelay || 5000);
+        setTimeout(function () {
+          el.style.transition = 'opacity 0.5s';
+          el.style.opacity = '0';
+          setTimeout(function () { el.remove(); }, 500);
+        }, delay);
+      });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initMessages);
+    } else {
+      initMessages();
+    }
+  })();
+</script>
 {% endif %}

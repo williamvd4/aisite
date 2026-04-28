@@ -49,3 +49,57 @@
     background-color: #e3f2fd;
     align-self: flex-start;
 }
+
+/* AI Lesson Assistant chat panel (lesson_plan_form) */
+.ai-msg {
+    background: #f0f7ff;
+    border-left: 3px solid #1a73e8;
+    border-radius: 0 8px 8px 0;
+}
+.user-msg {
+    background: #f8f9fa;
+    border-left: 3px solid #7b809a;
+    border-radius: 0 8px 8px 0;
+}
+#chat-history {
+    min-height: 200px;
+}
+.chip-btn {
+    font-size: 0.78rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+#save-status {
+    font-size: 0.82rem;
+}
+
+/* AI chat panel: sticky sidebar on xxl+ screens, natural flow on smaller */
+@media (min-width: 1400px) {
+    .ai-chat-panel {
+        position: sticky;
+        top: 20px;
+        height: 80vh;
+    }
+}
+@media (max-width: 1399.98px) {
+    .ai-chat-panel #chat-history {
+        min-height: 250px;
+        max-height: 350px;
+    }
+}
+
+/* Lesson plan detail page */
+.detail-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #7b809a;
+    margin-bottom: 0.25rem;
+}
+.section-card .card-header {
+    background: transparent;
+    border-bottom: 1px solid rgba(0, 0, 0, .08);
+}

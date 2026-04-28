@@ -39,9 +39,8 @@
       <div class="container">
         <div class="row">
           <div class="col-lg-7 text-center mx-auto">
-            <h1 class="text-white pt-3 mt-n5">Lesson Builder AI</h1>
-            <p class="lead text-white mt-3">
-              </p>
+            <h1 class="text-white pt-3 mt-n5">{% block hero_title %}Lesson Builder AI{% endblock hero_title %}</h1>
+            <p class="lead text-white mt-3">{% block hero_subtitle %}{% endblock hero_subtitle %}</p>
           </div>
         </div>
       </div>
@@ -49,34 +48,7 @@
 
   {% endblock header %}
 
-  <!-- Django messages toast container -->
-  {% if messages %}
-  <div aria-live="polite" aria-atomic="true"
-       style="position: fixed; top: 1rem; right: 1rem; z-index: 1100; min-width: 280px;">
-    {% for message in messages %}
-    <div class="toast show align-items-center text-white border-0 mb-2
-                {% if message.tags == 'error' %}bg-gradient-danger
-                {% elif message.tags == 'success' %}bg-gradient-success
-                {% elif message.tags == 'warning' %}bg-gradient-warning
-                {% else %}bg-gradient-info{% endif %}"
-         role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="4000">
-      <div class="d-flex">
-        <div class="toast-body">{{ message }}</div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                data-bs-dismiss="toast" aria-label="Close"></button>
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      document.querySelectorAll('.toast').forEach(function (el) {
-        var delay = parseInt(el.dataset.bsDelay || 4000);
-        setTimeout(function () { el.style.opacity = '0'; setTimeout(function () { el.remove(); }, 500); }, delay);
-      });
-    });
-  </script>
-  {% endif %}
+  {% include 'includes/messages.html' %}
 
   {% block content %}{% endblock content %}
 

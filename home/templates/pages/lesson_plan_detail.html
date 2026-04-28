@@ -1,134 +1,278 @@
 {% extends 'layouts/base_background.html' %}
 {% load static %}
 
-{% block title %}Lesson Plan: {{ lesson_plan.title }}{% endblock title %}
+{% block title %}{{ lesson_plan.title }} – Lesson Plan{% endblock title %}
+
+{% block hero_title %}Lesson Plan{% endblock %}
+{% block hero_subtitle %}{{ lesson_plan.subject.name }} · {{ lesson_plan.grade.level }}{% endblock %}
 
 {% block body %} class="index-page bg-gray-200" {% endblock body %}
 
+{% block stylesheets %}
+{{ block.super }}
+<style>
+  @media print {
+    .no-print { display: none !important; }
+    .card { border: 1px solid #dee2e6 !important; box-shadow: none !important; }
+  }
+  .detail-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #7b809a;
+    margin-bottom: 0.25rem;
+  }
+  .section-card .card-header { background: transparent; border-bottom: 1px solid rgba(0,0,0,.08); }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-5 mb-5">
-    <div class="row">
-        <div class="col-lg-10 mx-auto">
-            <div class="card">
-                <div class="card-header p-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0">
-                            <i class="material-icons opacity-10 me-2">article</i> {{ lesson_plan.title }}
-                        </h4>
-                        <div>
-                            <a href="{% url 'home:edit_lesson' lesson_plan.pk %}" class="btn btn-sm btn-outline-dark me-2">
-                                <i class="material-icons opacity-10">edit</i> Edit
-                            </a>
-                            <a href="{% url 'home:duplicate_lesson' lesson_plan.pk %}" class="btn btn-sm btn-outline-secondary me-2">
-                                <i class="material-icons opacity-10">content_copy</i> Duplicate
-                            </a>
-                            <a href="{% url 'home:delete_lesson' lesson_plan.pk %}" class="btn btn-sm btn-outline-danger">
-                                <i class="material-icons opacity-10">delete</i> Delete
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <!-- Basic Information -->
-                    <div class="mb-4">
-                        <h5 class="text-secondary">Basic Information</h5>
-                        <hr class="mt-1 mb-2">
-                        <p><strong>Description:</strong> {{ lesson_plan.description|linebreaksbr }}</p>
-                        <p><strong>Subject:</strong> {{ lesson_plan.subject.name }}</p>
-                        <p><strong>Grade:</strong> {{ lesson_plan.grade.level }}</p>
-                        {% if lesson_plan.lesson_date %}
-                        <p><strong>Date of Lesson:</strong> {{ lesson_plan.lesson_date|date:"F d, Y" }}</p>
-                        {% endif %}
-                        <p><strong>Duration:</strong> {{ lesson_plan.get_duration_display }}</p>
-                    </div>
+  <div class="row">
+    <div class="col-xl-10 mx-auto">
 
-                    <!-- Lesson Components -->
-                    <div class="mb-4">
-                        <h5 class="text-secondary">Lesson Components</h5>
-                        <hr class="mt-1 mb-2">
-                        <p><strong>Learning Objectives:</strong> {{ lesson_plan.learning_objectives|linebreaksbr }}</p>
-                        {% if lesson_plan.essential_question %}
-                            <p><strong>Essential Question:</strong> {{ lesson_plan.essential_question|linebreaksbr }}</p>
-                        {% endif %}
-                        <p><strong>Materials Needed:</strong> {{ lesson_plan.materials_needed|linebreaksbr }}</p>
-                    </div>
+      <!-- Action bar -->
+      <div class="d-flex flex-wrap gap-2 mb-4 align-items-center no-print">
+        <a href="{% url 'home:mylessonplans' %}" class="btn btn-outline-secondary btn-sm">
+          <i class="material-icons opacity-10" style="font-size:1rem;vertical-align:-3px">arrow_back</i> Back
+        </a>
+        <a href="{% url 'home:edit_lesson' lesson_plan.pk %}" class="btn btn-outline-dark btn-sm">
+          <i class="material-icons opacity-10" style="font-size:1rem;vertical-align:-3px">edit</i> Edit
+        </a>
+        <a href="{% url 'home:duplicate_lesson' lesson_plan.pk %}" class="btn btn-outline-secondary btn-sm">
+          <i class="material-icons opacity-10" style="font-size:1rem;vertical-align:-3px">content_copy</i> Duplicate
+        </a>
+        <a href="{% url 'home:delete_lesson' lesson_plan.pk %}" class="btn btn-outline-danger btn-sm">
+          <i class="material-icons opacity-10" style="font-size:1rem;vertical-align:-3px">delete</i> Delete
+        </a>
+        <button onclick="window.print()" class="btn btn-outline-info btn-sm ms-auto">
+          <i class="material-icons opacity-10" style="font-size:1rem;vertical-align:-3px">print</i> Print
+        </button>
+      </div>
 
-                    <!-- Lesson Structure -->
-                    <div class="mb-4">
-                        <h5 class="text-secondary">Lesson Structure</h5>
-                        <hr class="mt-1 mb-2">
-                        <p><strong>Opening Activity:</strong> {{ lesson_plan.opening_activity|linebreaksbr }}</p>
-                        <p><strong>Main Instruction:</strong> {{ lesson_plan.main_instruction|linebreaksbr }}</p>
-                        {% if lesson_plan.guided_practice %}
-                            <p><strong>Guided Practice:</strong> {{ lesson_plan.guided_practice|linebreaksbr }}</p>
-                        {% endif %}
-                        {% if lesson_plan.independent_practice %}
-                            <p><strong>Independent Practice:</strong> {{ lesson_plan.independent_practice|linebreaksbr }}</p>
-                        {% endif %}
-                        <p><strong>Closing Activity:</strong> {{ lesson_plan.closing_activity|linebreaksbr }}</p>
-                    </div>
-
-                    <!-- Assessment & Differentiation -->
-                    <div class="mb-4">
-                        <h5 class="text-secondary">Assessment & Differentiation</h5>
-                        <hr class="mt-1 mb-2">
-                        <p><strong>Formative Assessment:</strong> {{ lesson_plan.formative_assessment|linebreaksbr }}</p>
-                        {% if lesson_plan.summative_assessment %}
-                            <p><strong>Summative Assessment:</strong> {{ lesson_plan.summative_assessment|linebreaksbr }}</p>
-                        {% endif %}
-                        <p><strong>Differentiation Strategies:</strong> {{ lesson_plan.differentiation_strategies|linebreaksbr }}</p>
-                    </div>
-
-                    <!-- Additional Fields -->
-                    {% if lesson_plan.homework_assignment or lesson_plan.extension_activities or lesson_plan.reflection_notes %}
-                    <div class="mb-4">
-                        <h5 class="text-secondary">Additional Information</h5>
-                        <hr class="mt-1 mb-2">
-                        {% if lesson_plan.homework_assignment %}
-                            <p><strong>Homework Assignment:</strong> {{ lesson_plan.homework_assignment|linebreaksbr }}</p>
-                        {% endif %}
-                        {% if lesson_plan.extension_activities %}
-                            <p><strong>Extension Activities:</strong> {{ lesson_plan.extension_activities|linebreaksbr }}</p>
-                        {% endif %}
-                        {% if lesson_plan.reflection_notes %}
-                            <p><strong>Reflection Notes:</strong> {{ lesson_plan.reflection_notes|linebreaksbr }}</p>
-                        {% endif %}
-                    </div>
-                    {% endif %}
-
-                    <!-- Standards Alignment -->
-                    {% if lesson_plan.standards.all %}
-                    <div class="mb-4">
-                        <h5 class="text-secondary">Standards Alignment</h5>
-                        <hr class="mt-1 mb-2">
-                        <ul>
-                            {% for standard in lesson_plan.standards.all %}
-                                <li>{{ standard.code }}: {{ standard.description }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% endif %}
-
-                    <!-- Metadata -->
-                    <div class="mb-0">
-                        <h5 class="text-secondary">Details</h5>
-                        <hr class="mt-1 mb-2">
-                        <p><small class="text-muted">
-                            Created by: {{ lesson_plan.user.username }} on {{ lesson_plan.created_at|date:"F d, Y P" }}<br>
-                            Last updated: {{ lesson_plan.updated_at|date:"F d, Y P" }}<br>
-                            Status: 
-                            {% if lesson_plan.is_public %}Public{% else %}Private{% endif %}
-                            {% if lesson_plan.is_template %}, Template{% endif %}
-                        </small></p>
-                    </div>
-                </div>
-                <div class="card-footer p-3 text-center">
-                    <a href="{% url 'home:mylessonplans' %}" class="btn btn-secondary">
-                        <i class="material-icons opacity-10">arrow_back</i> Back to My Lesson Plans
-                    </a>
-                </div>
+      <!-- Title & meta card -->
+      <div class="card mb-4 section-card">
+        <div class="card-body p-4">
+          <div class="d-flex flex-wrap gap-2 align-items-start mb-3">
+            <div class="flex-grow-1">
+              <h2 class="mb-1">{{ lesson_plan.title }}</h2>
+              {% if lesson_plan.description %}
+              <p class="text-muted mb-0">{{ lesson_plan.description }}</p>
+              {% endif %}
             </div>
+            <div class="d-flex gap-2 flex-wrap">
+              {% if lesson_plan.is_draft %}<span class="badge bg-warning text-dark">Draft</span>{% endif %}
+              {% if lesson_plan.is_template %}<span class="badge bg-gradient-info">Template</span>{% endif %}
+              {% if lesson_plan.is_public %}<span class="badge bg-gradient-success">Public</span>{% endif %}
+              {% if lesson_plan.is_archived %}<span class="badge bg-gradient-secondary">Archived</span>{% endif %}
+            </div>
+          </div>
+          <div class="row g-3">
+            <div class="col-6 col-md-3">
+              <p class="detail-label">Subject</p>
+              <strong>{{ lesson_plan.subject.name }}</strong>
+            </div>
+            <div class="col-6 col-md-3">
+              <p class="detail-label">Grade</p>
+              <strong>{{ lesson_plan.grade.level }}</strong>
+            </div>
+            {% if lesson_plan.lesson_date %}
+            <div class="col-6 col-md-3">
+              <p class="detail-label">Date</p>
+              <strong>{{ lesson_plan.lesson_date|date:"M d, Y" }}</strong>
+            </div>
+            {% endif %}
+            <div class="col-6 col-md-3">
+              <p class="detail-label">Duration</p>
+              <strong>{{ lesson_plan.get_duration_display }}</strong>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <!-- Learning Objectives & Essential Question -->
+      <div class="row g-4 mb-4">
+        <div class="col-md-{% if lesson_plan.essential_question %}6{% else %}12{% endif %}">
+          <div class="card h-100 section-card">
+            <div class="card-header p-3">
+              <h6 class="mb-0 d-flex align-items-center gap-2">
+                <i class="material-icons text-primary" style="font-size:1.1rem">flag</i>
+                Learning Objectives
+              </h6>
+            </div>
+            <div class="card-body">{{ lesson_plan.learning_objectives|linebreaksbr }}</div>
+          </div>
+        </div>
+        {% if lesson_plan.essential_question %}
+        <div class="col-md-6">
+          <div class="card h-100 section-card">
+            <div class="card-header p-3">
+              <h6 class="mb-0 d-flex align-items-center gap-2">
+                <i class="material-icons text-info" style="font-size:1.1rem">help_outline</i>
+                Essential Question
+              </h6>
+            </div>
+            <div class="card-body">{{ lesson_plan.essential_question|linebreaksbr }}</div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      {% if lesson_plan.materials_needed %}
+      <div class="card mb-4 section-card">
+        <div class="card-header p-3">
+          <h6 class="mb-0 d-flex align-items-center gap-2">
+            <i class="material-icons text-success" style="font-size:1.1rem">inventory_2</i>
+            Materials Needed
+          </h6>
+        </div>
+        <div class="card-body">{{ lesson_plan.materials_needed|linebreaksbr }}</div>
+      </div>
+      {% endif %}
+
+      <!-- Lesson Structure timeline -->
+      <div class="card mb-4 section-card">
+        <div class="card-header p-3">
+          <h6 class="mb-0 d-flex align-items-center gap-2">
+            <i class="material-icons" style="font-size:1.1rem">timeline</i>
+            Lesson Structure
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-0">
+            <div class="col-12 pb-3 border-bottom">
+              <p class="detail-label">Opening Activity</p>
+              <div>{{ lesson_plan.opening_activity|linebreaksbr }}</div>
+            </div>
+            <div class="col-12 py-3 border-bottom">
+              <p class="detail-label">Main Instruction</p>
+              <div>{{ lesson_plan.main_instruction|linebreaksbr }}</div>
+            </div>
+            {% if lesson_plan.guided_practice or lesson_plan.independent_practice %}
+            <div class="row g-0 col-12 py-3 border-bottom">
+              {% if lesson_plan.guided_practice %}
+              <div class="col-md-{% if lesson_plan.independent_practice %}6{% else %}12{% endif %} {% if lesson_plan.independent_practice %}pe-md-3{% endif %}">
+                <p class="detail-label">Guided Practice</p>
+                <div>{{ lesson_plan.guided_practice|linebreaksbr }}</div>
+              </div>
+              {% endif %}
+              {% if lesson_plan.independent_practice %}
+              <div class="col-md-{% if lesson_plan.guided_practice %}6{% else %}12{% endif %} {% if lesson_plan.guided_practice %}ps-md-3{% endif %}">
+                <p class="detail-label">Independent Practice</p>
+                <div>{{ lesson_plan.independent_practice|linebreaksbr }}</div>
+              </div>
+              {% endif %}
+            </div>
+            {% endif %}
+            <div class="col-12 pt-3">
+              <p class="detail-label">Closing Activity</p>
+              <div>{{ lesson_plan.closing_activity|linebreaksbr }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Assessment & Differentiation -->
+      <div class="row g-4 mb-4">
+        <div class="col-md-{% if lesson_plan.differentiation_strategies %}6{% else %}12{% endif %}">
+          <div class="card h-100 section-card">
+            <div class="card-header p-3">
+              <h6 class="mb-0 d-flex align-items-center gap-2">
+                <i class="material-icons text-warning" style="font-size:1.1rem">assessment</i>
+                Assessment
+              </h6>
+            </div>
+            <div class="card-body">
+              {% if lesson_plan.formative_assessment %}
+              <p class="detail-label">Formative</p>
+              <p class="{% if lesson_plan.summative_assessment %}mb-3{% else %}mb-0{% endif %}">{{ lesson_plan.formative_assessment|linebreaksbr }}</p>
+              {% endif %}
+              {% if lesson_plan.summative_assessment %}
+              <p class="detail-label">Summative</p>
+              <p class="mb-0">{{ lesson_plan.summative_assessment|linebreaksbr }}</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% if lesson_plan.differentiation_strategies %}
+        <div class="col-md-6">
+          <div class="card h-100 section-card">
+            <div class="card-header p-3">
+              <h6 class="mb-0 d-flex align-items-center gap-2">
+                <i class="material-icons text-success" style="font-size:1.1rem">people</i>
+                Differentiation Strategies
+              </h6>
+            </div>
+            <div class="card-body">{{ lesson_plan.differentiation_strategies|linebreaksbr }}</div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Additional Information -->
+      {% if lesson_plan.homework_assignment or lesson_plan.extension_activities or lesson_plan.reflection_notes %}
+      <div class="card mb-4 section-card">
+        <div class="card-header p-3">
+          <h6 class="mb-0 d-flex align-items-center gap-2">
+            <i class="material-icons" style="font-size:1.1rem">more_horiz</i>
+            Additional Information
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-4">
+            {% if lesson_plan.homework_assignment %}
+            <div class="col-md-6">
+              <p class="detail-label">Homework Assignment</p>
+              <div>{{ lesson_plan.homework_assignment|linebreaksbr }}</div>
+            </div>
+            {% endif %}
+            {% if lesson_plan.extension_activities %}
+            <div class="col-md-6">
+              <p class="detail-label">Extension Activities</p>
+              <div>{{ lesson_plan.extension_activities|linebreaksbr }}</div>
+            </div>
+            {% endif %}
+            {% if lesson_plan.reflection_notes %}
+            <div class="col-12">
+              <p class="detail-label">Reflection Notes</p>
+              <div>{{ lesson_plan.reflection_notes|linebreaksbr }}</div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Standards Alignment -->
+      {% if lesson_plan.standards.all %}
+      <div class="card mb-4 section-card">
+        <div class="card-header p-3">
+          <h6 class="mb-0 d-flex align-items-center gap-2">
+            <i class="material-icons text-primary" style="font-size:1.1rem">check_circle</i>
+            Standards Alignment
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-2">
+            {% for standard in lesson_plan.standards.all %}
+            <div class="col-md-6 d-flex gap-2">
+              <span class="badge bg-gradient-secondary align-self-start mt-1 flex-shrink-0">{{ standard.code }}</span>
+              <p class="mb-0 small">{{ standard.description }}</p>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Footer meta -->
+      <p class="text-center text-muted small mt-2">
+        Created by <strong>{{ lesson_plan.user.username }}</strong> on {{ lesson_plan.created_at|date:"F d, Y" }} ·
+        Last updated {{ lesson_plan.updated_at|date:"F d, Y" }}
+      </p>
+
     </div>
+  </div>
 </div>
 {% endblock content %}

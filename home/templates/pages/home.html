@@ -3,6 +3,9 @@
 
 {% block body %} class="index-page bg-gray-200" {% endblock body %}
 
+{% block hero_title %}Dashboard{% endblock %}
+{% block hero_subtitle %}Welcome back, {{ user.first_name|default:user.username }}{% endblock %}
+
 {% block stylesheets %}
 {{ super }}
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css" rel="stylesheet" />

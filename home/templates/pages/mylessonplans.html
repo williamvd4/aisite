@@ -3,6 +3,9 @@
 
 {% block body %} class="index-page bg-gray-200" {% endblock body %}
 
+{% block hero_title %}My Lesson Plans{% endblock %}
+{% block hero_subtitle %}Create, organize, and schedule your lesson plans{% endblock %}
+
 {% block stylesheets %}
 {{ super }}
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css" rel="stylesheet" />
@@ -79,11 +82,11 @@
                 <table class="table align-items-center mb-0">
                     <thead>
                         <tr>
-                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Title</th>
-                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Subject</th>
-                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Grade</th>
-                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Last Updated</th>
-                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Actions</th>
+                            <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Title</th>
+                            <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7 ps-2">Subject</th>
+                            <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7 ps-2">Grade</th>
+                            <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Last Updated</th>
+                            <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -92,7 +95,7 @@
                             <td>
                                 <div class="d-flex px-2 py-1">
                                     <div class="d-flex flex-column justify-content-center">
-                                        <h6 class="mb-0 text-xs">
+                                        <h6 class="mb-0 text-sm">
                                             <a href="{% url 'home:lesson_detail' lesson.pk %}">{{ lesson.title }}</a>
                                             {% if lesson.is_draft %}<span class="badge bg-warning text-dark ms-1">Draft</span>{% endif %}
                                             {% if lesson.is_archived %}<span class="badge bg-secondary ms-1">Archived</span>{% endif %}
@@ -101,13 +104,13 @@
                                 </div>
                             </td>
                             <td>
-                                <p class="text-xs font-weight-bold mb-0">{{ lesson.subject.name }}</p>
+                                <p class="text-sm font-weight-bold mb-0">{{ lesson.subject.name }}</p>
                             </td>
                             <td>
-                                <p class="text-xs font-weight-bold mb-0">{{ lesson.grade.level }}</p>
+                                <p class="text-sm font-weight-bold mb-0">{{ lesson.grade.level }}</p>
                             </td>
                             <td class="align-middle text-center">
-                                <span class="text-secondary text-xs font-weight-normal">{{ lesson.updated_at|date:"Y-m-d P" }}</span>
+                                <span class="text-secondary text-sm font-weight-normal">{{ lesson.updated_at|date:"M d, Y" }}</span>
                             </td>
                             <td class="align-middle text-center">
                                 <a href="{% url 'home:lesson_detail' lesson.pk %}" class="btn btn-link text-info px-2 mb-0">
@@ -178,10 +181,18 @@
 
     {% else %}
         <div class="card">
-            <div class="card-body text-center">
-                <p class="lead">No lesson plans found. <a href="{% url 'home:createnewlesson' %}">Create your first lesson plan!</a></p>
-                {% if request.GET.title or request.GET.subject or request.GET.grade %}
-                    <p>Try adjusting your search filters.</p>
+            <div class="card-body text-center py-5">
+                <i class="material-icons text-secondary" style="font-size:3rem">description</i>
+                {% if request.GET.title or request.GET.subject or request.GET.grade or request.GET.status %}
+                    <p class="lead mt-2">No lesson plans match your search.</p>
+                    <p class="text-muted">Try adjusting the filters above.</p>
+                    <a href="{% url 'home:mylessonplans' %}" class="btn btn-outline-secondary btn-sm">Clear Filters</a>
+                {% else %}
+                    <p class="lead mt-2">No lesson plans yet.</p>
+                    <p class="text-muted">Get started by creating your first lesson plan with AI assistance.</p>
+                    <a href="{% url 'home:createnewlesson' %}" class="btn btn-primary">
+                        <i class="material-icons opacity-10">add</i> Create Your First Lesson Plan
+                    </a>
                 {% endif %}
             </div>
         </div>

@@ -5,9 +5,9 @@
 
 {% block body %} class="sign-up-cover" {% endblock body %}
 
-{% block content %}
+{% block header %}{% include 'includes/welcome_nav.html' %}{% endblock header %}
 
-  {% include 'includes/navigation.html' %}
+{% block content %}
 
   <header>
     <div class="page-header min-vh-100">
