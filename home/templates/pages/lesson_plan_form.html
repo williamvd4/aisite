@@ -344,7 +344,7 @@
           action="{% if form.instance.pk %}{% url 'home:edit_lesson' form.instance.pk %}{% else %}{% url 'home:createnewlesson' %}{% endif %}">
           {% csrf_token %}
           <div class="p-3 border-top">
-            <label class="form-label fw-bold mb-1">Quick prompts:</label>
+            <label class="form-label fw-bold mb-1">Quick Prompts:</label>
             <div class="d-flex flex-wrap gap-1 mb-2" id="prompt-chips">
               <button type="button" class="btn btn-outline-secondary chip-btn" data-prompt="Write clear, measurable learning objectives for this lesson">Write learning objectives</button>
               <button type="button" class="btn btn-outline-secondary chip-btn" data-prompt="Suggest an engaging opening activity to hook students at the start of this lesson">Suggest opening activity</button>
@@ -550,8 +550,13 @@
       const items = block.trim().split('\n').map(l => '<li>' + l.replace(/^[*\-] /, '') + '</li>').join('');
       return '<ul>' + items + '</ul>';
     });
-    // Line breaks for remaining text
-    safe = safe.replace(/(?<!>)\n(?!<)/g, '<br>');
+    // Line breaks for remaining text (using simple \n check without lookbehind for broader browser support)
+    safe = safe.replace(/\n/g, function(m, offset) {
+      const before = safe[offset - 1];
+      const after = safe[offset + 1];
+      if (before === '>' || after === '<') return m;
+      return '<br>';
+    });
     return safe;
   }
 

@@ -468,7 +468,7 @@ class AutosaveTest(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = User.objects.create_user(username='autosaveuser', password='pw')
-        self.subject = Subject.objects.create(name='English')
+        self.subject = Subject.objects.create(name='AutosaveEnglish')
         self.grade = Grade.objects.create(level='7th', order=7)
         self.client.login(username='autosaveuser', password='pw')
 

@@ -367,7 +367,8 @@ def autosave_lesson(request, pk=None):
             lesson.is_draft = True
         try:
             lesson.save()
-        except Exception:
+        except Exception as exc:
+            logger.exception("Autosave failed: %s", exc)
             return JsonResponse({'status': 'error', 'message': 'Save failed'}, status=500)
 
     return JsonResponse({
