@@ -390,3 +390,257 @@ class PublicLandingViewTest(TestCase):
         response = self.client.get(reverse('welcome'))
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse('home:home'))
+
+
+# ---------------------------------------------------------------------------
+# New tests: Auth, Draft/Autosave, Archive, Search/Filter
+# ---------------------------------------------------------------------------
+
+class AuthTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username='authuser', password='TestP@ss1', email='auth@test.com'
+        )
+
+    def test_login_valid(self):
+        response = self.client.post(reverse('home:login'), {
+            'username': 'authuser', 'password': 'TestP@ss1'
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('home:home'))
+
+    def test_login_invalid(self):
+        response = self.client.post(reverse('home:login'), {
+            'username': 'authuser', 'password': 'wrongpass'
+        })
+        self.assertEqual(response.status_code, 200)
+
+    def test_logout(self):
+        self.client.login(username='authuser', password='TestP@ss1')
+        response = self.client.post(reverse('home:logout'))
+        self.assertEqual(response.status_code, 302)
+
+    def test_home_requires_login(self):
+        response = self.client.get(reverse('home:home'))
+        self.assertRedirects(response, reverse('home:welcome'))
+
+    def test_mylessonplans_requires_login(self):
+        response = self.client.get(reverse('home:mylessonplans'))
+        self.assertEqual(response.status_code, 302)
+
+    def test_createnewlesson_requires_login(self):
+        response = self.client.get(reverse('home:createnewlesson'))
+        self.assertEqual(response.status_code, 302)
+
+
+class LessonDraftFieldTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='draftuser', password='pw')
+        self.subject = Subject.objects.create(name='DraftSubj')
+        self.grade = Grade.objects.create(level='6th', order=6)
+
+    def test_is_draft_default_false(self):
+        lesson = _make_lesson(self.user, self.subject, self.grade, title='Draft Test')
+        self.assertFalse(lesson.is_draft)
+
+    def test_is_draft_can_be_set(self):
+        lesson = _make_lesson(self.user, self.subject, self.grade, title='Draft Lesson', is_draft=True)
+        self.assertTrue(lesson.is_draft)
+
+    def test_draft_badge_in_mylessonplans(self):
+        _make_lesson(self.user, self.subject, self.grade, title='My Draft', is_draft=True)
+        self.client.login(username='draftuser', password='pw')
+        response = self.client.get(reverse('home:mylessonplans'))
+        self.assertContains(response, 'Draft')
+
+    def test_mylessonplans_filter_draft(self):
+        _make_lesson(self.user, self.subject, self.grade, title='Published Lesson')
+        _make_lesson(self.user, self.subject, self.grade, title='Draft Lesson', is_draft=True)
+        self.client.login(username='draftuser', password='pw')
+        response = self.client.get(reverse('home:mylessonplans') + '?status=draft')
+        self.assertContains(response, 'Draft Lesson')
+        self.assertNotContains(response, 'Published Lesson')
+
+
+class AutosaveTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='autosaveuser', password='pw')
+        self.subject = Subject.objects.create(name='English')
+        self.grade = Grade.objects.create(level='7th', order=7)
+        self.client.login(username='autosaveuser', password='pw')
+
+    def test_autosave_creates_new_draft(self):
+        import json as _json
+        data = {
+            'title': 'Autosaved Lesson',
+            'subject': str(self.subject.pk),
+            'grade': str(self.grade.pk),
+            'learning_objectives': 'Students will learn.',
+        }
+        response = self.client.post(
+            reverse('home:autosave_lesson'),
+            data=_json.dumps(data),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+        resp_data = response.json()
+        self.assertEqual(resp_data['status'], 'ok')
+        self.assertIsNotNone(resp_data['pk'])
+        lesson = LessonPlan.objects.get(pk=resp_data['pk'])
+        self.assertTrue(lesson.is_draft)
+        self.assertEqual(lesson.title, 'Autosaved Lesson')
+
+    def test_autosave_not_ready_without_required_fields(self):
+        import json as _json
+        data = {'title': 'Incomplete', 'learning_objectives': 'stuff'}
+        response = self.client.post(
+            reverse('home:autosave_lesson'),
+            data=_json.dumps(data),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['status'], 'not_ready')
+
+    def test_autosave_updates_existing_lesson(self):
+        import json as _json
+        lesson = _make_lesson(self.user, self.subject, self.grade, title='Original')
+        data = {
+            'title': 'Updated Title',
+            'subject': str(self.subject.pk),
+            'grade': str(self.grade.pk),
+        }
+        response = self.client.post(
+            reverse('home:autosave_lesson_pk', args=[lesson.pk]),
+            data=_json.dumps(data),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+        lesson.refresh_from_db()
+        self.assertEqual(lesson.title, 'Updated Title')
+
+    def test_autosave_requires_login(self):
+        self.client.logout()
+        import json as _json
+        response = self.client.post(
+            reverse('home:autosave_lesson'),
+            data=_json.dumps({'title': 'x'}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 302)
+
+    def test_autosave_rejects_other_users_lesson(self):
+        import json as _json
+        other = User.objects.create_user(username='otherautosave', password='pw')
+        lesson = _make_lesson(other, self.subject, self.grade, title='Other Lesson')
+        response = self.client.post(
+            reverse('home:autosave_lesson_pk', args=[lesson.pk]),
+            data=_json.dumps({'title': 'Hacked', 'subject': str(self.subject.pk), 'grade': str(self.grade.pk)}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 404)
+
+
+class ArchiveLessonTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='archiveuser', password='pw')
+        self.subject = Subject.objects.create(name='History')
+        self.grade = Grade.objects.create(level='8th', order=8)
+        self.lesson = _make_lesson(self.user, self.subject, self.grade, title='Archive Me')
+        self.client.login(username='archiveuser', password='pw')
+
+    def test_archive_toggles_is_archived(self):
+        self.assertFalse(self.lesson.is_archived)
+        self.client.post(reverse('home:archive_lesson', args=[self.lesson.pk]))
+        self.lesson.refresh_from_db()
+        self.assertTrue(self.lesson.is_archived)
+
+    def test_archive_then_unarchive(self):
+        self.client.post(reverse('home:archive_lesson', args=[self.lesson.pk]))
+        self.client.post(reverse('home:archive_lesson', args=[self.lesson.pk]))
+        self.lesson.refresh_from_db()
+        self.assertFalse(self.lesson.is_archived)
+
+    def test_archived_lesson_hidden_from_default_list(self):
+        self.lesson.is_archived = True
+        self.lesson.save()
+        response = self.client.get(reverse('home:mylessonplans'))
+        self.assertNotContains(response, 'Archive Me')
+
+    def test_archived_lessons_visible_with_filter(self):
+        self.lesson.is_archived = True
+        self.lesson.save()
+        response = self.client.get(reverse('home:mylessonplans') + '?status=archived')
+        self.assertContains(response, 'Archive Me')
+
+    def test_archive_other_user_forbidden(self):
+        other = User.objects.create_user(username='otherarchive', password='pw')
+        self.client.login(username='otherarchive', password='pw')
+        response = self.client.post(reverse('home:archive_lesson', args=[self.lesson.pk]))
+        self.assertEqual(response.status_code, 404)
+
+
+class SearchAndFilterTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='searchuser', password='pw')
+        self.subject_math = Subject.objects.create(name='FilterMath')
+        self.subject_art = Subject.objects.create(name='FilterArt')
+        self.grade = Grade.objects.create(level='9th', order=9)
+        _make_lesson(self.user, self.subject_math, self.grade, title='Fractions Intro', learning_objectives='Fractions lesson')
+        _make_lesson(self.user, self.subject_art, self.grade, title='Color Theory', learning_objectives='Color and light')
+        _make_lesson(self.user, self.subject_math, self.grade, title='Algebra Basics', is_draft=True, learning_objectives='Algebra lesson')
+        self.client.login(username='searchuser', password='pw')
+
+    def test_search_by_title(self):
+        response = self.client.get(reverse('home:mylessonplans') + '?title=Fractions')
+        self.assertContains(response, 'Fractions Intro')
+        self.assertNotContains(response, 'Color Theory')
+
+    def test_filter_by_subject(self):
+        response = self.client.get(
+            reverse('home:mylessonplans') + f'?subject={self.subject_art.pk}'
+        )
+        self.assertContains(response, 'Color Theory')
+        self.assertNotContains(response, 'Fractions Intro')
+
+    def test_filter_published_only(self):
+        response = self.client.get(reverse('home:mylessonplans') + '?status=published')
+        self.assertContains(response, 'Fractions Intro')
+        self.assertNotContains(response, 'Algebra Basics')
+
+    def test_filter_drafts_only(self):
+        response = self.client.get(reverse('home:mylessonplans') + '?status=draft')
+        self.assertContains(response, 'Algebra Basics')
+        self.assertNotContains(response, 'Fractions Intro')
+
+
+class HomeDashboardTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='dashuser', password='pw')
+        self.subject = Subject.objects.create(name='DashMath')
+        self.grade = Grade.objects.create(level='10th', order=10)
+        self.client.login(username='dashuser', password='pw')
+
+    def test_dashboard_shows_draft_section(self):
+        _make_lesson(self.user, self.subject, self.grade, title='My Draft Plan', is_draft=True)
+        response = self.client.get(reverse('home:home'))
+        self.assertContains(response, 'Continue Where You Left Off')
+        self.assertContains(response, 'My Draft Plan')
+
+    def test_dashboard_no_draft_section_when_none(self):
+        response = self.client.get(reverse('home:home'))
+        self.assertNotContains(response, 'Continue Where You Left Off')
+
+    def test_dashboard_shows_quick_actions(self):
+        response = self.client.get(reverse('home:home'))
+        self.assertContains(response, 'New Lesson')
+        self.assertContains(response, 'My Resources')
+
+    def test_dashboard_empty_state_cta(self):
+        response = self.client.get(reverse('home:home'))
+        self.assertContains(response, "Create Your First Lesson Plan")
