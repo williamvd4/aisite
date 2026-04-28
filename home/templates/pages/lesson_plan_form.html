@@ -13,39 +13,56 @@
 
 {% block content %}
 <style>
-    /* Improve contrast for form inputs */
     .form-control,
     .form-select {
-        background-color: #ffffff !important; /* White background */
-        color: #000000 !important; /* Black text */
-        border: 1px solid #6c757d !important; /* Gray border for better definition */
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border: 1px solid #6c757d !important;
     }
     .form-control::placeholder {
-        color: #6c757d !important; /* Lighter placeholder text */
-        opacity: 1; /* Ensure placeholder is visible */
+        color: #6c757d !important;
+        opacity: 1;
     }
     .form-control:focus,
     .form-select:focus {
-        background-color: #ffffff !important; /* White background on focus */
-        border-color: #007bff !important; /* Standard blue focus border */
-        box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25) !important; /* Standard blue focus shadow */
+        background-color: #ffffff !important;
+        border-color: #007bff !important;
+        box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25) !important;
     }
     .form-check-input:checked {
         background-color: #007bff !important;
         border-color: #007bff !important;
     }
     label {
-        color: #000000 !important; /* Black labels for maximum readability */
-        font-weight: 600; /* Slightly bolder labels */
+        color: #000000 !important;
+        font-weight: 600;
     }
     .card {
-        border: 1px solid #dee2e6; /* Add a light border to cards */
+        border: 1px solid #dee2e6;
     }
     h5.text-secondary {
-        color: #343a40 !important; /* Darker section headers */
+        color: #343a40 !important;
     }
+    /* AI Chat styles */
+    #chat-history {
+        min-height: 200px;
+    }
+    .ai-msg { background: #f0f7ff; border-left: 3px solid #007bff; }
+    .user-msg { background: #f8f9fa; border-left: 3px solid #6c757d; }
+    .chip-btn {
+        font-size: 0.78rem;
+        padding: 3px 10px;
+        border-radius: 20px;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+    #save-status { font-size: 0.82rem; }
 </style>
 <div class="container mt-5 mb-5">
+    <!-- Save status indicator -->
+    <div class="d-flex align-items-center mb-2 gap-2">
+        <span id="save-status" class="text-muted"></span>
+    </div>
     <div class="row gx-3">
     <!-- Main form column -->
     <div class="col-xxl-7">
@@ -249,7 +266,7 @@
                                     {% if form.is_public.help_text %}<small class="form-text text-muted d-block">{{ form.is_public.help_text }}</small>{% endif %}
                                 </div>
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-3 mb-3">
                                 <div class="form-check form-switch ps-0">
                                     {{ form.is_template.label_tag }} 
                                     {{ form.is_template }}
@@ -257,11 +274,19 @@
                                     {% if form.is_template.help_text %}<small class="form-text text-muted d-block">{{ form.is_template.help_text }}</small>{% endif %}
                                 </div>
                             </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="form-check form-switch ps-0">
+                                    {{ form.is_draft.label_tag }}
+                                    {{ form.is_draft }}
+                                    {% if form.is_draft.errors %}<div class="invalid-feedback d-block">{{ form.is_draft.errors|join:", " }}</div>{% endif %}
+                                    {% if form.is_draft.help_text %}<small class="form-text text-muted d-block">{{ form.is_draft.help_text }}</small>{% endif %}
+                                </div>
+                            </div>
                         </div>
 
                         <div class="mt-4 d-flex justify-content-end">
                             <a href="{% if form.instance.pk %}{% url 'home:lesson_detail' form.instance.pk %}{% else %}{% url 'home:mylessonplans' %}{% endif %}" class="btn btn-secondary me-2">Cancel</a>
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary" id="submitLessonBtn">
                                 {% if form.instance.pk %}Save Changes{% else %}Create Lesson Plan{% endif %}
                             </button>
                         </div>
@@ -273,18 +298,17 @@
     </div><!-- end col-xxl-7 -->
 
     <!-- AI Chat column -->
-    <div class="col-xxl-5">
+    <div class="col-xxl-5 mt-4 mt-xxl-0">
       <div id="ai-chat-popup" class="card card-raised my-0 d-flex flex-column"
            style="height: 80vh; position: -webkit-sticky; position: sticky; top: 20px;"
            aria-label="AI lesson assistant">
-        <h2 class="text-center mb-0 p-3 border-bottom h5">AI Lesson Assistant</h2>
+        <h2 class="text-center mb-0 p-3 border-bottom h5">🤖 AI Lesson Assistant</h2>
 
         <div id="chat-history" class="p-3 flex-grow-1" style="overflow-y: auto;" aria-live="polite" aria-relevant="additions">
-          <div class="mb-2">
-            <strong>AI:</strong> How can I help you improve this lesson plan?
-            Select any relevant curriculums below to include them in the discussion.
-            <br><small class="text-muted">
-              💡 Try: "Improve the opening activity" or "Suggest differentiation strategies for ELL students."
+          <div class="mb-2 p-2 rounded ai-msg">
+            <strong>AI:</strong> Hi! I'm here to help you build a great lesson plan. Try one of the quick prompts below or ask me anything.
+            <br><small class="text-muted mt-1 d-block">
+              💡 Select relevant curriculums below to include them as context for more aligned suggestions.
             </small>
           </div>
         </div>
@@ -292,15 +316,18 @@
         <!-- Curriculum Selection for AI Chat -->
         <div class="p-3 border-top">
           <label class="form-label"><strong>Reference Curriculums:</strong></label>
+          {% if user_curriculums %}
+            <small class="text-muted d-block mb-1">Using: <span id="selected-curriculum-names">None</span></small>
+          {% endif %}
           <div id="ai-curriculum-selection"
-               style="max-height: 120px; overflow-y: auto; border: 1px solid #ddd; padding: 8px; border-radius: 5px;"
+               style="max-height: 100px; overflow-y: auto; border: 1px solid #ddd; padding: 8px; border-radius: 5px;"
                role="group" aria-label="Select curriculum files for AI context">
             {% if user_curriculums %}
               {% for curriculum in user_curriculums %}
                 <div class="form-check">
                   <input class="form-check-input ai-curriculum-checkbox" type="checkbox"
-                         value="{{ curriculum.pk }}" id="ai_edit_curriculum_{{ curriculum.pk }}">
-                  <label class="form-check-label" for="ai_edit_curriculum_{{ curriculum.pk }}">
+                         value="{{ curriculum.pk }}" id="ai_curriculum_{{ curriculum.pk }}">
+                  <label class="form-check-label" for="ai_curriculum_{{ curriculum.pk }}">
                     {{ curriculum.title }}
                   </label>
                 </div>
@@ -313,18 +340,33 @@
           </div>
         </div>
 
-        <form id="ai-chat-form" method="POST" action="{% url 'home:edit_lesson' form.instance.pk %}">
+        <form id="ai-chat-form" method="POST"
+          action="{% if form.instance.pk %}{% url 'home:edit_lesson' form.instance.pk %}{% else %}{% url 'home:createnewlesson' %}{% endif %}">
           {% csrf_token %}
-          <div class="form-group p-3 border-top">
+          <div class="p-3 border-top">
+            <label class="form-label fw-bold mb-1">Quick Prompts:</label>
+            <div class="d-flex flex-wrap gap-1 mb-2" id="prompt-chips">
+              <button type="button" class="btn btn-outline-secondary chip-btn" data-prompt="Write clear, measurable learning objectives for this lesson">Write learning objectives</button>
+              <button type="button" class="btn btn-outline-secondary chip-btn" data-prompt="Suggest an engaging opening activity to hook students at the start of this lesson">Suggest opening activity</button>
+              <button type="button" class="btn btn-outline-secondary chip-btn" data-prompt="Add differentiation strategies for diverse learners including ELL students and students with IEPs">Add differentiation strategies</button>
+              <button type="button" class="btn btn-outline-secondary chip-btn" data-prompt="Create formative and summative assessment ideas that align with the learning objectives">Create assessment ideas</button>
+              <button type="button" class="btn btn-outline-secondary chip-btn" data-prompt="Suggest materials and resources needed for this lesson">Suggest materials needed</button>
+              <button type="button" class="btn btn-outline-secondary chip-btn" data-prompt="Write an effective closing activity to consolidate student learning">Write closing activity</button>
+            </div>
+          </div>
+          <div class="form-group px-3">
             <label for="ai_input_edit" class="form-label"><strong>Ask the AI assistant:</strong></label>
             <textarea class="form-control" id="ai_input_edit" name="ai_input" rows="2"
                       placeholder="e.g., Improve the closing activity"
                       aria-describedby="aiEditHint"></textarea>
-            <div id="aiEditHint" class="form-text text-muted">Press Enter or click Ask AI to send.</div>
+            <div id="aiEditHint" class="form-text text-muted">Press Enter or click Ask AI to send. Shift+Enter for new line.</div>
           </div>
-          <div class="text-center p-3 border-top">
-            <button class="btn btn-primary" type="submit" id="askAiBtnEdit">
+          <div class="d-flex align-items-center gap-2 p-3 border-top">
+            <button class="btn btn-primary flex-grow-1" type="submit" id="askAiBtnEdit">
               <i class="material-icons opacity-10" aria-hidden="true">send</i> Ask AI
+            </button>
+            <button class="btn btn-outline-secondary d-none" type="button" id="retryAiBtn">
+              <i class="material-icons opacity-10">refresh</i> Retry
             </button>
           </div>
         </form>
@@ -339,84 +381,81 @@
 {{ block.super }}
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Add 'form-control' class to all text inputs, textareas, and select elements
     const formElements = document.querySelectorAll(
-        'form input[type="text"], 
-        form input[type="email"], 
-        form input[type="url"], 
-        form input[type="password"], 
-        form input[type="number"], 
-        form input[type="date"], 
-        form input[type="time"], 
-        form textarea, 
-        form select'
+        'form input[type="text"], form input[type="email"], form input[type="url"], ' +
+        'form input[type="password"], form input[type="number"], form input[type="date"], ' +
+        'form input[type="time"], form textarea, form select'
     );
     formElements.forEach(el => {
         if (!el.classList.contains('form-control') && !el.classList.contains('form-select')) {
             el.classList.add('form-control');
         }
-        // For select multiple, Bootstrap 5 uses form-select class
         if (el.tagName === 'SELECT' && el.multiple) {
             el.classList.remove('form-control');
             el.classList.add('form-select');
         }
     });
-
-    // Add 'form-check-input' to checkbox and radio if not already present
-    const checkRadioElements = document.querySelectorAll('form input[type="checkbox"], form input[type="radio"]');
-    checkRadioElements.forEach(el => {
+    document.querySelectorAll('form input[type="checkbox"], form input[type="radio"]').forEach(el => {
         if (!el.classList.contains('form-check-input')) {
             el.classList.add('form-check-input');
         }
     });
-
-    // Ensure labels for checkboxes and radios have 'form-check-label'
-    // This is a bit more complex as Django renders label tags separately
-    // This script assumes a common structure or you might need to adjust based on your form rendering
-    document.querySelectorAll('form .form-check').forEach(formCheckDiv => {
-        const label = formCheckDiv.querySelector('label');
-        if (label && !label.classList.contains('form-check-label')) {
-            // label.classList.add('form-check-label'); // This might conflict with Material Kit styling for switches
-        }
-    });
-
-    // Specific styling for is_public and is_template switches if they are checkboxes
-    ['id_is_public', 'id_is_template'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el && el.type === 'checkbox') {
-            // Material Kit might handle switch styling automatically if classes are set correctly in forms.py
-            // Ensure the parent div has 'form-check form-switch'
-            if (el.parentElement.classList.contains('form-check') && !el.parentElement.classList.contains('form-switch')){
-                // el.parentElement.classList.add('form-switch'); // This might be needed if not set by Django widget
-            }
-        }
-    });
-
   });
 </script>
 
 <script>
-// AI Chat for edit lesson form
+// ---- AI Chat ----
 (function () {
   const chatForm = document.getElementById('ai-chat-form');
   if (!chatForm) return;
 
+  let lastUserInput = '';
+
+  // Prompt chips
+  document.querySelectorAll('.chip-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const textarea = document.getElementById('ai_input_edit');
+      textarea.value = this.dataset.prompt;
+      textarea.focus();
+    });
+  });
+
+  // Curriculum selection display
+  document.querySelectorAll('.ai-curriculum-checkbox').forEach(cb => {
+    cb.addEventListener('change', updateCurriculumDisplay);
+  });
+  function updateCurriculumDisplay() {
+    const checked = Array.from(document.querySelectorAll('.ai-curriculum-checkbox:checked'))
+      .map(cb => cb.closest('.form-check').querySelector('label').textContent.trim());
+    const display = document.getElementById('selected-curriculum-names');
+    if (display) display.textContent = checked.length ? checked.join(', ') : 'None';
+  }
+
+  // Submit handler
   chatForm.addEventListener('submit', function (e) {
     e.preventDefault();
+    sendMessage();
+  });
+
+  function sendMessage() {
     const formData = new FormData(chatForm);
     const userInput = formData.get('ai_input');
     if (!userInput || !userInput.trim()) return;
+    lastUserInput = userInput;
 
-    const checkboxes = document.querySelectorAll('.ai-curriculum-checkbox:checked');
-    checkboxes.forEach(cb => formData.append('curriculum_ids[]', cb.value));
+    document.querySelectorAll('.ai-curriculum-checkbox:checked').forEach(cb => {
+      formData.append('curriculum_ids[]', cb.value);
+    });
 
-    appendMsg('You', userInput);
+    appendMsg('You', userInput, 'user');
     document.getElementById('ai_input_edit').value = '';
 
     const loadingId = 'ai-load-' + Date.now();
     appendLoading(loadingId);
     const btn = document.getElementById('askAiBtnEdit');
+    const retryBtn = document.getElementById('retryAiBtn');
     btn.disabled = true;
+    retryBtn.classList.add('d-none');
 
     fetch(chatForm.action, {
       method: 'POST',
@@ -428,27 +467,107 @@
         removeLoading(loadingId);
         btn.disabled = false;
         if (data.extraction_warnings && data.extraction_warnings.length) {
-          appendMsg('System', data.extraction_warnings.join('\n'));
+          appendMsg('System', data.extraction_warnings.join('\n'), 'system');
         }
-        appendMsg('AI', data.ai_response || 'No response received. Please try again.');
+        const aiText = data.ai_response || 'No response received. Please try again.';
+        appendMsg('AI', aiText, 'ai', true);
       })
       .catch(() => {
         removeLoading(loadingId);
         btn.disabled = false;
-        appendMsg('System', 'An error occurred. Please try again.');
+        appendMsg('System', 'An error occurred. Please try again.', 'system');
+        retryBtn.classList.remove('d-none');
       });
+  }
+
+  document.getElementById('retryAiBtn').addEventListener('click', function() {
+    if (lastUserInput) {
+      document.getElementById('ai_input_edit').value = lastUserInput;
+      sendMessage();
+    }
   });
 
   document.getElementById('ai_input_edit').addEventListener('keydown', function (e) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); chatForm.dispatchEvent(new Event('submit')); }
   });
 
-  function appendMsg(sender, message) {
+  // Field mapping for "Apply to field" buttons
+  const fieldMap = {
+    'learning_objectives': 'Learning Objectives',
+    'essential_question': 'Essential Question',
+    'materials_needed': 'Materials Needed',
+    'opening_activity': 'Opening Activity',
+    'main_instruction': 'Main Instruction',
+    'guided_practice': 'Guided Practice',
+    'independent_practice': 'Independent Practice',
+    'closing_activity': 'Closing Activity',
+    'formative_assessment': 'Formative Assessment',
+    'summative_assessment': 'Summative Assessment',
+    'differentiation_strategies': 'Differentiation Strategies',
+    'homework_assignment': 'Homework',
+    'extension_activities': 'Extension Activities',
+    'reflection_notes': 'Reflection Notes',
+  };
+
+  function buildApplyDropdown(text) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'mt-2';
+    const label = document.createElement('small');
+    label.className = 'text-muted d-block mb-1';
+    label.textContent = 'Apply to field:';
+    wrapper.appendChild(label);
+    const btnGroup = document.createElement('div');
+    btnGroup.className = 'd-flex flex-wrap gap-1';
+    Object.entries(fieldMap).forEach(([fieldId, fieldLabel]) => {
+      const el = document.getElementById('id_' + fieldId);
+      if (!el) return;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn btn-outline-primary chip-btn';
+      btn.textContent = fieldLabel;
+      btn.addEventListener('click', function() {
+        el.value = text;
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.focus();
+        markDirty();
+      });
+      btnGroup.appendChild(btn);
+    });
+    wrapper.appendChild(btnGroup);
+    return wrapper;
+  }
+
+  function parseMarkdown(text) {
+    // Escape HTML first
+    let safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    // Numbered lists
+    safe = safe.replace(/((?:^\d+\. .+\n?)+)/gm, function(block) {
+      const items = block.trim().split('\n').map(l => '<li>' + l.replace(/^\d+\. /, '') + '</li>').join('');
+      return '<ol>' + items + '</ol>';
+    });
+    // Bullet lists
+    safe = safe.replace(/((?:^[*\-] .+\n?)+)/gm, function(block) {
+      const items = block.trim().split('\n').map(l => '<li>' + l.replace(/^[*\-] /, '') + '</li>').join('');
+      return '<ul>' + items + '</ul>';
+    });
+    // Line breaks for remaining text (using simple \n check without lookbehind for broader browser support)
+    safe = safe.replace(/\n/g, function(m, offset) {
+      const before = safe[offset - 1];
+      const after = safe[offset + 1];
+      if (before === '>' || after === '<') return m;
+      return '<br>';
+    });
+    return safe;
+  }
+
+  function appendMsg(sender, message, type, withApply) {
     const history = document.getElementById('chat-history');
     const el = document.createElement('div');
-    el.className = 'mb-3 p-2 border-radius-md ' + (sender === 'You' ? 'bg-light' : '');
-    const safe = message.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
-    el.innerHTML = `<strong>${sender}:</strong><span class="ms-1">${safe}</span>`;
+    el.className = 'mb-3 p-2 rounded ' + (type === 'ai' ? 'ai-msg' : type === 'user' ? 'user-msg' : '');
+    el.innerHTML = `<strong>${sender}:</strong><div class="ms-1 mt-1">${parseMarkdown(message)}</div>`;
+    if (withApply && type === 'ai') {
+      el.appendChild(buildApplyDropdown(message));
+    }
     history.appendChild(el);
     history.scrollTop = history.scrollHeight;
   }
@@ -464,6 +583,116 @@
   }
 
   function removeLoading(id) { const el = document.getElementById(id); if (el) el.remove(); }
+}());
+</script>
+
+<script>
+// ---- Autosave & Unsaved-changes warning ----
+(function() {
+  const AUTOSAVE_DELAY = 3000;
+  const lessonPk = "{{ form.instance.pk|default:'' }}";
+  const autosaveUrl = lessonPk
+    ? "{% url 'home:autosave_lesson_pk' 0 %}".replace('/0/', '/' + lessonPk + '/')
+    : "{% url 'home:autosave_lesson' %}";
+
+  let isDirty = false;
+  let autosaveTimer = null;
+  let currentPk = lessonPk || null;
+
+  const statusEl = document.getElementById('save-status');
+  const mainForm = document.querySelector('form[method="post"]:not(#ai-chat-form)');
+
+  function setStatus(msg, color) {
+    if (!statusEl) return;
+    statusEl.textContent = msg;
+    statusEl.style.color = color || '#6c757d';
+  }
+
+  function markDirty() {
+    isDirty = true;
+    setStatus('● Unsaved changes', '#e67e22');
+    clearTimeout(autosaveTimer);
+    autosaveTimer = setTimeout(doAutosave, AUTOSAVE_DELAY);
+  }
+
+  // Expose markDirty for AI apply buttons
+  window.markDirty = markDirty;
+
+  function collectFormData() {
+    if (!mainForm) return {};
+    const data = {};
+    const textFields = [
+      'title','description','learning_objectives','essential_question','materials_needed',
+      'opening_activity','main_instruction','guided_practice','independent_practice',
+      'closing_activity','formative_assessment','summative_assessment',
+      'differentiation_strategies','homework_assignment','extension_activities','reflection_notes'
+    ];
+    textFields.forEach(f => {
+      const el = mainForm.querySelector('[name="' + f + '"]');
+      if (el) data[f] = el.value;
+    });
+    ['subject','grade','duration'].forEach(f => {
+      const el = mainForm.querySelector('[name="' + f + '"]');
+      if (el) data[f] = el.value;
+    });
+    return data;
+  }
+
+  function doAutosave() {
+    if (!isDirty) return;
+    setStatus('Saving…', '#3498db');
+    const url = currentPk
+      ? "{% url 'home:autosave_lesson_pk' 0 %}".replace('/0/', '/' + currentPk + '/')
+      : autosaveUrl;
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+      },
+      body: JSON.stringify(collectFormData()),
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.status === 'ok') {
+        isDirty = false;
+        if (data.pk && !currentPk) currentPk = data.pk;
+        setStatus('✓ Saved at ' + (data.saved_at || ''), '#27ae60');
+      } else if (data.status === 'not_ready') {
+        setStatus('○ ' + data.message, '#6c757d');
+      } else {
+        setStatus('⚠ Autosave failed', '#e74c3c');
+      }
+    })
+    .catch(() => setStatus('⚠ Autosave failed', '#e74c3c'));
+  }
+
+  // Watch form fields
+  if (mainForm) {
+    mainForm.querySelectorAll('input, textarea, select').forEach(el => {
+      el.addEventListener('input', markDirty);
+      el.addEventListener('change', markDirty);
+    });
+    // Prevent duplicate submit
+    const submitBtn = document.getElementById('submitLessonBtn');
+    if (submitBtn) {
+      mainForm.addEventListener('submit', function() {
+        isDirty = false;
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Saving…';
+        }
+      });
+    }
+  }
+
+  // Warn on leave
+  window.addEventListener('beforeunload', function(e) {
+    if (isDirty) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
 }());
 </script>
 {% endblock javascripts %}

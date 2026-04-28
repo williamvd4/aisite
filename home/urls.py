@@ -16,6 +16,9 @@ urlpatterns = [
     path('lesson/<int:pk>/edit/', views.edit_lesson, name='edit_lesson'),
     path('lesson/<int:pk>/duplicate/', views.duplicate_lesson, name='duplicate_lesson'),
     path('lesson/<int:pk>/delete/', views.delete_lesson, name='delete_lesson'),
+    path('lesson/<int:pk>/archive/', views.archive_lesson, name='archive_lesson'),
+    path('lesson/autosave/', views.autosave_lesson, name='autosave_lesson'),
+    path('lesson/<int:pk>/autosave/', views.autosave_lesson, name='autosave_lesson_pk'),
 
     # Resources and Materials
     path('myresources/', views.myresources, name='myresources'),
